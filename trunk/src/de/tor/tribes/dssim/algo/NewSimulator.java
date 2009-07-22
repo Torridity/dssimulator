@@ -36,37 +36,36 @@ public class NewSimulator extends AbstractSimulator {
             ramCount = ramElement.getCount();
         }
 
-        int wallAtFight = (int) Math.round(getWallLevel() - (ramCount / (4 * Math.pow(1.09, getWallLevel()))));
+        int wallAtFight = (int) Math.round(getWallLevel() - (ramCount / (4 * Math.pow(1.090012, getWallLevel()))));
         if (wallAtFight < (int) Math.round(getWallLevel() / 2)) {
             wallAtFight = (int) Math.round(getWallLevel() / 2);
         }
 
         //enter three calculation rounds
         for (int i = 0; i < 3; i++) {
-            //  System.out.println("Round " + i);
             //calculate strengths based on survivors of each round
             double[] offStrengths = calculateOffStrengths(result.getSurvivingOff());
-            double[] defStrengths = calculateDefStrengths(result.getSurvivingDef(), offStrengths, wallAtFight);
-            /* for (int s = 0; s < 3; s++) {
-            System.out.println("Strength" + s + " (Off): " + offStrengths[s]);
-            System.out.println("Strength" + s + " (Def): " + defStrengths[s]);
-            }*/
+            double[] defStrengths = calculateDefStrengths(result.getSurvivingDef(), offStrengths, wallAtFight, (i == 0));
             //calculate losses
             double[] offLosses = calulateLosses(offStrengths, defStrengths, ID_OFF);
             double[] defLosses = calulateLosses(offStrengths, defStrengths, ID_DEF);
-            /* for (int s = 0; s < 3; s++) {
-            System.out.println("Losses" + s + " (Off): " + offLosses[s]);
-            System.out.println("Losses" + s + " (Def): " + defLosses[s]);
-            }
-            System.out.println("----------");*/
             //correct troops and repeat calculation
-            correctTroops(offLosses, defLosses, result);
+            correctTroops(offStrengths, offLosses, defLosses, result, (i == 0));
+        }
+
+        //initialize to "win"
+        result.setWin(true);
+        for (UnitHolder u : UnitManager.getSingleton().getUnits()) {
+            if (result.getSurvivingDef().get(u).getCount() > 0) {
+                //at least one defender has survived
+                result.setWin(false);
+                break;
+            }
         }
 
         if (result.isWin() && ramCount > 0) {
             //calculate wall after fight
-
-            double maxDecrement = ramCount * 2 / (4 * Math.pow(1.09, getWallLevel()));
+            double maxDecrement = ramCount * 2 / (4 * Math.pow(1.090012, getWallLevel()));
             double lostUnits = 0;
             double totalUnits = 0;
 
@@ -78,14 +77,44 @@ public class NewSimulator extends AbstractSimulator {
             double ratio = lostUnits / totalUnits;
             int wallDecrement = (int) Math.round(-1 * maxDecrement / 2 * ratio + maxDecrement);
             result.setWallLevel((getWallLevel() - wallDecrement < 0) ? 0 : getWallLevel() - wallDecrement);
+        } else if (ramCount <= 0) {
+            //no change
+        } else {
+            //lost scenario
+            double lostUnits = 0;
+            double totalUnits = 0;
+            for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
+                totalUnits += getDef().get(unit).getCount();
+                lostUnits += getDef().get(unit).getCount() - result.getSurvivingDef().get(unit).getCount();
+            }
+            double ratio = lostUnits / totalUnits;
+            int wallDecrement = (int) Math.round((ramCount * ratio) * 2 / (8 * Math.pow(1.090012, getWallLevel())));
+            result.setWallLevel((getWallLevel() - wallDecrement < 0) ? 0 : getWallLevel() - wallDecrement);
         }
 
-        /* System.out.println("RESULTS");
-        for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
-        System.out.println(unit + " (Off): " + getOff().get(unit).getCount());
-        System.out.println(unit + " (Def): " + getDef().get(unit).getCount());
+        //demolish building
+        AbstractUnitElement cata = getOff().get(UnitManager.getSingleton().getUnitByPlainName("catapult"));
+        double buildingAfter = getBuildingLevel();
+
+        if (cata != null && cata.getCount() != 0) {
+            double[] offStrengths = calculateOffStrengths(getOff());
+            double[] defStrengths = calculateDefStrengths(getDef(), offStrengths, 0, true);
+            double offStrength = offStrengths[ID_INFANTRY] + offStrengths[ID_CAVALRY] + offStrengths[ID_ARCHER];
+            double defStrength = defStrengths[ID_INFANTRY] + defStrengths[ID_CAVALRY] + defStrengths[ID_ARCHER];
+            if (!result.isWin()) {
+                //attack losses
+                double buildingDemolish = Math.pow((offStrength / defStrength), 1.5) * (cata.getUnit().getAttack() * cata.getCount()) / (600 * Math.pow(1.090012, getBuildingLevel()));
+                buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
+            } else {
+                //attacker wins
+                double buildingDemolish = (2 - Math.pow((defStrength / offStrength), 1.5)) * (cata.getUnit().getAttack() * cata.getCount()) / (600 * Math.pow(1.090012, getBuildingLevel()));
+                buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
+            }
+            result.setBuildingLevel((buildingAfter <= 0) ? 0 : (int) buildingAfter);
+        } else {
+            //no demolishion
+            result.setBuildingLevel(getBuildingLevel());
         }
-        System.out.println("-------");*/
         return result;
     }
 
@@ -97,14 +126,14 @@ public class NewSimulator extends AbstractSimulator {
             UnitHolder unit = units.nextElement();
             AbstractUnitElement element = pTable.get(unit);
             //add strength to all appropriate array elements (e.g. marcher is cavalry and archer)
-            if (isInfantry(unit)) {
-                result[ID_INFANTRY] += unit.getAttack() * element.getCount() * element.getTech();
+            if (isInfantry(unit) && !isArcher(unit)) {
+                result[ID_INFANTRY] += unit.getAttack() * (double) element.getCount() * element.getTech();
             }
             if (isCavalery(unit) && !isArcher(unit)) {
-                result[ID_CAVALRY] += unit.getAttack() * element.getCount() * element.getTech();
+                result[ID_CAVALRY] += unit.getAttack() * (double) element.getCount() * element.getTech();
             }
             if (isArcher(unit)) {
-                result[ID_ARCHER] += unit.getAttack() * element.getCount() * element.getTech();
+                result[ID_ARCHER] += unit.getAttack() * (double) element.getCount() * element.getTech();
             }
         }
         double moral = getMoral() / 100;
@@ -115,42 +144,36 @@ public class NewSimulator extends AbstractSimulator {
         return result;
     }
 
-    private double[] calculateDefStrengths(Hashtable<UnitHolder, AbstractUnitElement> pTable, double[] pOffStrengths, int pWallLevel) {
+    private double[] calculateDefStrengths(Hashtable<UnitHolder, AbstractUnitElement> pTable, double[] pOffStrengths, int pWallLevel, boolean pUseBasicDefense) {
         double[] result = new double[3];
         double totalOff = 0;
         for (double d : pOffStrengths) {
             totalOff += d;
         }
-        /*
-        System.out.println("OffInf: " + pOffStrengths[ID_INFANTRY]);
-        System.out.println("OffCav: " + pOffStrengths[ID_CAVALRY]);
-        System.out.println("OffArch: " + pOffStrengths[ID_ARCHER]);
-        System.out.println("TotalOff " + totalOff);
-         */
         double infantryMulti = (totalOff != 0) ? pOffStrengths[ID_INFANTRY] / totalOff : 0;
         double cavalryMulti = (totalOff != 0) ? pOffStrengths[ID_CAVALRY] / totalOff : 0;
         double archerMulti = (totalOff != 0) ? pOffStrengths[ID_ARCHER] / totalOff : 0;
-
         Enumeration<UnitHolder> units = pTable.keys();
         double moral = getMoral() / 100;
         while (units.hasMoreElements()) {
             UnitHolder unit = units.nextElement();
             AbstractUnitElement element = pTable.get(unit);
-            //add strength to all appropriate array elements (e.g. marcher is cavalry and archer)
-            if (isInfantry(unit)) {
-                result[ID_INFANTRY] += infantryMulti * unit.getDefense() * element.getCount() * element.getTech();
-            }
-            if (isCavalery(unit)) {
-                result[ID_CAVALRY] += cavalryMulti * unit.getDefenseCavalry() * element.getCount() * element.getTech();
-            }
-            if (isArcher(unit)) {
-                result[ID_ARCHER] += archerMulti * unit.getDefenseArcher() * element.getCount() * element.getTech();
-            }
+            result[ID_INFANTRY] += infantryMulti * unit.getDefense() * (double) element.getCount() * element.getTech();
+            result[ID_CAVALRY] += cavalryMulti * unit.getDefenseCavalry() * (double) element.getCount() * element.getTech();
+            result[ID_ARCHER] += archerMulti * unit.getDefenseArcher() * (double) element.getCount() * element.getTech();
         }
+
         double luck = ((100 + getLuck()) / 100);
-        result[0] = result[0] * luck * moral * Math.pow(1.037, pWallLevel) + (20 + pWallLevel * 50) * ((totalOff == 0) ? 0 : pOffStrengths[ID_INFANTRY] / totalOff);
-        result[1] = result[1] * luck * moral * Math.pow(1.037, pWallLevel) + (20 + pWallLevel * 50) * ((totalOff == 0) ? 0 : pOffStrengths[ID_CAVALRY] / totalOff);
-        result[2] = result[2] * luck * moral * Math.pow(1.037, pWallLevel) + (20 + pWallLevel * 50) * ((totalOff == 0) ? 0 : pOffStrengths[ID_ARCHER] / totalOff);
+        double nightBonus = (isNightBonus()) ? 2 : 1;
+        double[] basicDefense = new double[]{0.0, 0.0, 0.0};
+        if (pUseBasicDefense) {
+            basicDefense[0] = (20.0 + (double) pWallLevel * 50.0) * ((totalOff == 0) ? 0 : pOffStrengths[ID_INFANTRY] / totalOff);
+            basicDefense[1] = (20.0 + (double) pWallLevel * 50.0) * ((totalOff == 0) ? 0 : pOffStrengths[ID_CAVALRY] / totalOff);
+            basicDefense[2] = (20.0 + (double) pWallLevel * 50.0) * ((totalOff == 0) ? 0 : pOffStrengths[ID_ARCHER] / totalOff);
+        }
+        result[0] = result[0] * luck * moral * nightBonus * Math.pow(1.037, pWallLevel) + basicDefense[0];
+        result[1] = result[1] * luck * moral * nightBonus * Math.pow(1.037, pWallLevel) + basicDefense[1];
+        result[2] = result[2] * luck * moral * nightBonus * Math.pow(1.037, pWallLevel) + basicDefense[2];
         return result;
     }
 
@@ -170,6 +193,13 @@ public class NewSimulator extends AbstractSimulator {
                         losses[i] = 1;
                     }//end of complete loss
                 }//end of nothing lost
+               /* if(i == ID_ARCHER){
+            System.out.println("ARCHER_LOSS");
+            System.out.println("Off " + pOffStrengths[i]);
+            System.out.println("Def " + pDeffStrengths[i]);
+            System.out.println(losses[i]);
+            System.out.println("----");
+            }*/
             }//end of for loop
         } else {
             //calculate losses
@@ -191,22 +221,47 @@ public class NewSimulator extends AbstractSimulator {
         return losses;
     }
 
-    private void correctTroops(double[] pOffLosses, double[] pDefLosses, SimulatorResult pResult) {
-
+    private void correctTroops(double[] pOffStrengths, double[] pOffLosses, double[] pDefLosses, SimulatorResult pResult, boolean pSpyRound) {
+        //correct off
         for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
             AbstractUnitElement unitOffElement = pResult.getSurvivingOff().get(unit);
             AbstractUnitElement unitDefElement = pResult.getSurvivingDef().get(unit);
-            if (isInfantry(unit)) {
-                // System.out.println("Reduce inf " + unit + " by factor " + pOffLosses[ID_INFANTRY]);
-                unitOffElement.setCount((int) Math.round(unitOffElement.getCount() - unitOffElement.getCount() * pOffLosses[ID_INFANTRY]));
-                unitDefElement.setCount((int) Math.round(unitDefElement.getCount() - unitDefElement.getCount() * pDefLosses[ID_INFANTRY]));
-            } else if (isCavalery(unit)) {
-                unitOffElement.setCount((int) Math.round(unitOffElement.getCount() - unitOffElement.getCount() * pOffLosses[ID_CAVALRY]));
-                unitDefElement.setCount((int) Math.round(unitDefElement.getCount() - unitDefElement.getCount() * pDefLosses[ID_CAVALRY]));
+            if (isInfantry(unit) && !isArcher(unit)) {
+                unitOffElement.setCount((int) Math.round((double) unitOffElement.getCount() - ((double) unitOffElement.getCount() * pOffLosses[ID_INFANTRY])));
+            } else if (isCavalery(unit) && !isArcher(unit)) {
+                if (!isSpy(unit)) {
+                    unitOffElement.setCount((int) Math.round((double) unitOffElement.getCount() - (double) unitOffElement.getCount() * pOffLosses[ID_CAVALRY]));
+                } else {
+                    //only correct spys in first round
+                    if (pSpyRound) {
+                        int spyLosses = 0;
+                        //special spy calculation
+                        if (unitOffElement.getCount() == 0) {
+                            //no spy
+                            spyLosses = 0;
+                        } else if ((double) unitDefElement.getCount() / (double) unitOffElement.getCount() >= 2) {
+                            //no change
+                            spyLosses = unitOffElement.getCount();
+                        } else {
+                            spyLosses = (int) Math.round((double) unitOffElement.getCount() * Math.pow((double) unitDefElement.getCount() / ((double) unitOffElement.getCount() * 2.0), 1.5));
+                        }
+                        unitOffElement.setCount((int) Math.round((double) unitOffElement.getCount() - spyLosses));
+                    }
+                }
             } else {
-                unitOffElement.setCount((int) Math.round(unitOffElement.getCount() - unitOffElement.getCount() * pOffLosses[ID_ARCHER]));
-                unitDefElement.setCount((int) Math.round(unitDefElement.getCount() - unitDefElement.getCount() * pDefLosses[ID_ARCHER]));
+                unitOffElement.setCount((int) Math.round((double) unitOffElement.getCount() - ((double) unitOffElement.getCount() * pOffLosses[ID_ARCHER])));
             }
+        }
+        double totalOff = 0;
+        for (double d : pOffStrengths) {
+            totalOff += d;
+        }
+        //correct def
+        for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
+            AbstractUnitElement unitDefElement = pResult.getSurvivingDef().get(unit);
+            double decreaseFactor = pOffStrengths[ID_INFANTRY] * pDefLosses[ID_INFANTRY] + pOffStrengths[ID_CAVALRY] * pDefLosses[ID_CAVALRY] + pOffStrengths[ID_ARCHER] * pDefLosses[ID_ARCHER];
+            int survive = (int) Math.round((double) unitDefElement.getCount() - ((double) unitDefElement.getCount() / ((totalOff == 0) ? 1 : totalOff) * decreaseFactor));
+            unitDefElement.setCount(survive);
         }
     }
 }

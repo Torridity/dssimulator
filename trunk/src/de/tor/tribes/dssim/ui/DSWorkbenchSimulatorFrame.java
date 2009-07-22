@@ -12,8 +12,10 @@ package de.tor.tribes.dssim.ui;
 
 import de.tor.tribes.dssim.Constants;
 import de.tor.tribes.dssim.algo.NewSimulator;
+import de.tor.tribes.dssim.algo.OldSimulator;
 import de.tor.tribes.dssim.editor.SpreadSheetCellEditor;
 import de.tor.tribes.dssim.editor.TechLevelCellEditor;
+import de.tor.tribes.dssim.model.ResultTableModel;
 import de.tor.tribes.dssim.model.SimulatorTableModel;
 import de.tor.tribes.dssim.renderer.TableHeaderRenderer;
 import de.tor.tribes.dssim.renderer.UnitTableCellRenderer;
@@ -33,7 +35,6 @@ import javax.swing.SwingConstants;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -107,6 +108,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         for (int i = 0; i < jAttackerTable.getColumnCount(); i++) {
             jAttackerTable.getColumnModel().getColumn(i).setHeaderRenderer(new TableHeaderRenderer());
         }
+
+        jResultTable.setModel(ResultTableModel.getSingleton());
     }
 
     /** This method is called from within the constructor to
@@ -137,8 +140,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jLabel31 = new javax.swing.JLabel();
         jCataTargetSpinner = new javax.swing.JSpinner();
         jOffToKillBox = new javax.swing.JCheckBox();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
 
@@ -149,14 +150,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jPanel1.setBackground(new java.awt.Color(239, 235, 223));
 
-        jLabel28.setText("Wall");
+        jLabel28.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/wall.png"))); // NOI18N
 
         jLabel29.setText("Moral");
         jLabel29.setMaximumSize(new java.awt.Dimension(30, 14));
         jLabel29.setMinimumSize(new java.awt.Dimension(30, 14));
         jLabel29.setPreferredSize(new java.awt.Dimension(30, 14));
 
-        jLabel30.setText("Glück");
+        jLabel30.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/klee.png"))); // NOI18N
         jLabel30.setMaximumSize(new java.awt.Dimension(30, 14));
         jLabel30.setMinimumSize(new java.awt.Dimension(30, 14));
         jLabel30.setPreferredSize(new java.awt.Dimension(30, 14));
@@ -239,9 +240,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jBuildingInfo.setBackground(new java.awt.Color(255, 255, 255));
         jBuildingInfo.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createEtchedBorder(), javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0)));
 
-        jLabel31.setText("Katapultziel");
+        jLabel31.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/main.png"))); // NOI18N
 
-        jCataTargetSpinner.setModel(new javax.swing.SpinnerNumberModel(1, 1, 30, 1));
+        jCataTargetSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, 30, 1));
         jCataTargetSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 fireStateChangedEvent(evt);
@@ -250,20 +251,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jOffToKillBox.setText("OffToKill");
         jOffToKillBox.setOpaque(false);
-
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel1.setText("Angreifer");
-        jLabel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        jLabel1.setMaximumSize(new java.awt.Dimension(150, 20));
-        jLabel1.setMinimumSize(new java.awt.Dimension(150, 20));
-        jLabel1.setPreferredSize(new java.awt.Dimension(150, 20));
-
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel2.setText("Verteidiger");
-        jLabel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        jLabel2.setMaximumSize(new java.awt.Dimension(150, 20));
-        jLabel2.setMinimumSize(new java.awt.Dimension(150, 20));
-        jLabel2.setPreferredSize(new java.awt.Dimension(150, 20));
 
         jLabel3.setText("Ergebnisse");
         jLabel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -278,21 +265,21 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
-                    .addComponent(jWallInfo, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
+                    .addComponent(jWallInfo, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jLabel30, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLuckSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
-                            .addComponent(jMoralSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE))
+                            .addComponent(jLuckSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 141, Short.MAX_VALUE)
+                            .addComponent(jMoralSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 141, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
                         .addComponent(jNightBonus)
                         .addGap(79, 79, 79)
@@ -303,25 +290,17 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                             .addComponent(jLabel31))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 104, Short.MAX_VALUE)
-                            .addComponent(jWallSpinner, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 104, Short.MAX_VALUE)))
-                    .addComponent(jBuildingInfo, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 284, Short.MAX_VALUE)
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 124, Short.MAX_VALUE)
+                            .addComponent(jWallSpinner, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 124, Short.MAX_VALUE)))
+                    .addComponent(jBuildingInfo, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 276, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 307, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -336,7 +315,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                             .addComponent(jLuckSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel28, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel28, javax.swing.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE)
                             .addComponent(jWallSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -347,7 +326,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jWallInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -362,14 +341,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(35, 35, 35)
+                .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton1)
@@ -437,29 +416,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
     private void buildResultTable(SimulatorResult pResult) {
 
-        // <editor-fold defaultstate="collapsed" desc=" Build result model">
-        DefaultTableModel resultModel = new javax.swing.table.DefaultTableModel(
-                new Object[][]{},
-                new String[]{
-                    "", "spear", "sword", "axe", "spy", "light", "heavy", "ram", "catapult", "knight", "snob"
-                }) {
-
-            Class[] types = new Class[]{
-                String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class
-            };
-
-            @Override
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
-
-            @Override
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return false;
-            }
-        };
-        jResultTable.setModel(resultModel);
-        // </editor-fold>
+        ResultTableModel.getSingleton().clear();
 
         // <editor-fold defaultstate="collapsed" desc="Build header renderer">
         for (int i = 0; i < jResultTable.getColumnCount(); i++) {
@@ -483,8 +440,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
         Hashtable<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
-        for (int i = 1; i < resultModel.getColumnCount(); i++) {
-            UnitHolder u = UnitManager.getSingleton().getUnitByPlainName(resultModel.getColumnName(i));
+        for (int i = 1; i < ResultTableModel.getSingleton().getColumnCount(); i++) {
+            UnitHolder u = UnitManager.getSingleton().getUnitByPlainName(ResultTableModel.getSingleton().getColumnName(i));
             AbstractUnitElement offElement = off.get(u);
             AbstractUnitElement defElement = def.get(u);
             //set units of type before
@@ -504,13 +461,13 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         }
 
         jResultTable.invalidate();
-        resultModel.addRow(attackerBefore.toArray());
-        resultModel.addRow(attackerLosses.toArray());
-        resultModel.addRow(attackerSurvivors.toArray());
-        resultModel.addRow(new Object[]{});
-        resultModel.addRow(defenderBefore.toArray());
-        resultModel.addRow(defenderLosses.toArray());
-        resultModel.addRow(defenderSurvivors.toArray());
+        ResultTableModel.getSingleton().addRow(attackerBefore.toArray());
+        ResultTableModel.getSingleton().addRow(attackerLosses.toArray());
+        ResultTableModel.getSingleton().addRow(attackerSurvivors.toArray());
+        ResultTableModel.getSingleton().addRow(new Object[]{});
+        ResultTableModel.getSingleton().addRow(defenderBefore.toArray());
+        ResultTableModel.getSingleton().addRow(defenderLosses.toArray());
+        ResultTableModel.getSingleton().addRow(defenderSurvivors.toArray());
 
         jResultTable.revalidate();
         // </editor-fold>
@@ -604,8 +561,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jBuildingInfo;
     private javax.swing.JButton jButton1;
     private javax.swing.JSpinner jCataTargetSpinner;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel28;
     private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
