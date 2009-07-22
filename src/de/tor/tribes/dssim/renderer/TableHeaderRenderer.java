@@ -23,11 +23,10 @@ public class TableHeaderRenderer extends DefaultTableCellRenderer {
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+
         Component c = new DefaultTableCellRenderer().getTableCellRendererComponent(table, value, hasFocus, hasFocus, row, row);
         c.setBackground(Constants.DS_BACK);
         ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
-        DefaultTableCellRenderer r = ((DefaultTableCellRenderer) c);
-       // r.setText("<html><b>" + r.getText() + "</b></html>");
         return c;
     }
 }

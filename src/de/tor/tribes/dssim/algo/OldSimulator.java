@@ -5,8 +5,10 @@
 package de.tor.tribes.dssim.algo;
 
 import de.tor.tribes.dssim.types.AbstractUnitElement;
+import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
 import de.tor.tribes.dssim.util.UnitManager;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 /**
@@ -16,25 +18,24 @@ import java.util.Hashtable;
 public class OldSimulator extends AbstractSimulator {
 
     boolean DEBUG = false;
-    private Hashtable<UnitHolder, AbstractUnitElement> off = null;
-    private Hashtable<UnitHolder, AbstractUnitElement> def = null;
 
-    public void calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel) {
-        off = pOff;
-        def = pDef;
+    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel) {
+        setOff(pOff);
+        setDef(pDef);
         setMoral(pMoral);
         setLuck(pLuck);
         setNightBonus(pNightBonus);
         setWallLevel(pWallLevel);
         setBuildingLevel(pBuildingLevel);
-        double offInfantryValue = calculateInfantryValue(off);
-        double offCavaleryValue = calculateCavaleryValue(off);
-        double infantryDefValue = calculateInfantryDefValue();
-        double cavaleryDefValue = calculateCavaleryDefValue();
-        double infantryRation = offInfantryValue / (offInfantryValue + offCavaleryValue);
-        double cavaleryRation = 1 - infantryRation;
-        double defStrength = infantryRation * infantryDefValue + cavaleryRation * cavaleryDefValue;
-        AbstractUnitElement rams = off.get(UnitManager.getSingleton().getUnitByPlainName("ram"));
+        SimulatorResult result = new SimulatorResult(getOff(), getDef());
+        double[] offStrengths = calculateOffStrengthts();
+        double[] defStrengths = calculateDefStrengths();
+
+
+        double infantryRatio = offStrengths[ID_INFANTRY] / (offStrengths[ID_INFANTRY] + offStrengths[ID_CAVALRY]);
+        double cavaleryRatio = 1 - infantryRatio;
+        double defStrength = infantryRatio * defStrengths[ID_INFANTRY] + cavaleryRatio * defStrengths[ID_CAVALRY];
+        AbstractUnitElement rams = getOff().get(UnitManager.getSingleton().getUnitByPlainName("ram"));
         double ramCount = 0;
         double ramAttPoint = 0;
         double wallAtFight = getWallLevel();
@@ -64,7 +65,7 @@ public class OldSimulator extends AbstractSimulator {
             println("RamAttPoints: " + ramAttPoint);
         }
 
-        AbstractUnitElement cata = off.get(UnitManager.getSingleton().getUnitByPlainName("catapult"));
+        AbstractUnitElement cata = getOff().get(UnitManager.getSingleton().getUnitByPlainName("catapult"));
         double cataAttPoint = 0;
         if (cata != null) {
             switch (cata.getTech()) {
@@ -85,15 +86,15 @@ public class OldSimulator extends AbstractSimulator {
         //include wall
         defStrength = (20 + 50 * wallAtFight) + (defStrength * Math.pow(1.037, wallAtFight));
 
-        println("OffInf " + offInfantryValue);
-        println("OffCav " + offCavaleryValue);
+        println("OffInf " + offStrengths[ID_INFANTRY]);
+        println("OffCav " + offStrengths[ID_CAVALRY]);
 
-        println("DefInf " + (infantryDefValue * infantryRation));
-        println("DefCav " + (cavaleryDefValue * cavaleryRation));
-        println("InfRatio " + infantryRation);
-        println("CavRatio " + cavaleryRation);
+        println("DefInf " + (defStrengths[ID_INFANTRY] * infantryRatio));
+        println("DefCav " + (defStrengths[ID_CAVALRY] * cavaleryRatio));
+        println("InfRatio " + infantryRatio);
+        println("CavRatio " + cavaleryRatio);
         println("---------------");
-        double offStrength = offInfantryValue + offCavaleryValue;
+        double offStrength = offStrengths[ID_INFANTRY] + offStrengths[ID_CAVALRY];
         println("OffStrength " + offStrength);
         println("DefStrength " + defStrength);
 
@@ -130,11 +131,10 @@ public class OldSimulator extends AbstractSimulator {
         }
         println("WallAfter: " + wallAfter);
         println("BuildingAfter: " + buildingAfter);
-        setWin(lossRatioOff < 1);
-        setOffDecrement(lossRatioOff);
-        setDefDecrement(lossRatioDef);
-        setWallResult((wallAfter <= 0) ? 0 : (int) wallAfter);
-        setCataResult((buildingAfter <= 0) ? 0 : (int) buildingAfter);
+        result.setWin(lossRatioOff < 1);
+        result.setWallLevel((wallAfter <= 0) ? 0 : (int) wallAfter);
+        result.setBuildingLevel((buildingAfter <= 0) ? 0 : (int) buildingAfter);
+        return result;
     }
 
     private void println(String value) {
@@ -143,92 +143,40 @@ public class OldSimulator extends AbstractSimulator {
         }
     }
 
-    //calc infantry strength for spear, sword, axe, ram, cata, snob
-    private double calculateInfantryValue(Hashtable<UnitHolder, AbstractUnitElement> pLocation) {
-        UnitHolder unit = UnitManager.getSingleton().getUnitByPlainName("spear");
-        AbstractUnitElement part = pLocation.get(unit);
-        double techFactor = 0;
-        double luckFactor = (100 + getLuck()) / 100;
-        double result = 0;
-        if (part != null) {
-            techFactor = getTechFactor(part.getTech());
-            result = part.getCount() * unit.getAttack() * getMoral() / 100 * techFactor;
-        }
-        unit = UnitManager.getSingleton().getUnitByPlainName("sword");
-        part = pLocation.get(unit);
-        if (part != null) {
-            techFactor = getTechFactor(part.getTech());
-            result += part.getCount() * unit.getAttack() * getMoral() / 100 * techFactor;
-        }
-        unit = UnitManager.getSingleton().getUnitByPlainName("axe");
-        part = pLocation.get(unit);
-        if (part != null) {
-            techFactor = getTechFactor(part.getTech());
-            result += part.getCount() * unit.getAttack() * getMoral() / 100 * techFactor;
-        }
-        unit = UnitManager.getSingleton().getUnitByPlainName("ram");
-        part = pLocation.get(unit);
-        if (part != null) {
-            techFactor = getTechFactor(part.getTech());
-            result += part.getCount() * unit.getAttack() * getMoral() / 100 * techFactor;
-        }
-        unit = UnitManager.getSingleton().getUnitByPlainName("catapult");
-        part = pLocation.get(unit);
-        if (part != null) {
-            techFactor = getTechFactor(part.getTech());
-            result += part.getCount() * unit.getAttack() * getMoral() / 100 * techFactor;
-        }
-        unit = UnitManager.getSingleton().getUnitByPlainName("snob");
-        part = pLocation.get(unit);
-        if (part != null) {
-            techFactor = getTechFactor(part.getTech());
-            result += part.getCount() * unit.getAttack() * getMoral() / 100 * techFactor;
-        }
-        return result * luckFactor;
-    }
-
-    //calc calvalery strength for light and heavy
-    private double calculateCavaleryValue(Hashtable<UnitHolder, AbstractUnitElement> pLocation) {
-        UnitHolder unit = UnitManager.getSingleton().getUnitByPlainName("light");
-        double techFactor = 0;
-        double luckFactor = (100 + getLuck()) / 100;
-        double result = 0;
-        AbstractUnitElement part = pLocation.get(unit);
-        if (part != null) {
-            techFactor = getTechFactor(part.getTech());
-            result = part.getCount() * unit.getAttack() * getMoral() / 100 * techFactor;
-        }
-        unit = UnitManager.getSingleton().getUnitByPlainName("heavy");
-        part = pLocation.get(unit);
-        if (part != null) {
-            techFactor = getTechFactor(part.getTech());
-            result += part.getCount() * unit.getAttack() * getMoral() / 100 * techFactor;
-        }
-        return result * luckFactor;
-    }
-
-    private double calculateInfantryDefValue() {
-        double result = 0;
-        for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
-            AbstractUnitElement part = def.get(unit);
-            if (part != null) {
-                double techFactor = getTechFactor(part.getTech());
-                result += part.getCount() * unit.getDefense() * techFactor;
+    private double[] calculateOffStrengthts() {
+        double[] result = new double[2];
+        Enumeration<UnitHolder> units = getOff().keys();
+        while (units.hasMoreElements()) {
+            UnitHolder unit = units.nextElement();
+            AbstractUnitElement unitElement = getOff().get(unit);
+            if (isInfantry(unit)) {
+                result[ID_INFANTRY] += unitElement.getCount() * unit.getAttack() * getTechFactor(unitElement.getTech());
+            }
+            if (isCavalery(unit)) {
+                result[ID_CAVALRY] += unitElement.getCount() * unit.getAttack() * getTechFactor(unitElement.getTech());
             }
         }
-        return result * ((isNightBonus()) ? 2 : 1);
+        //integrate moral and luck
+        double moral = getMoral() / 100;
+        double luck = ((100 + getLuck()) / 100);
+        result[ID_INFANTRY] = result[ID_INFANTRY] * moral * luck;
+        result[ID_CAVALRY] = result[ID_CAVALRY] * moral * luck;
+        return result;
     }
 
-    private double calculateCavaleryDefValue() {
-        double result = 0;
-        for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
-            AbstractUnitElement part = def.get(unit);
-            if (part != null) {
-                double techFactor = getTechFactor(part.getTech());
-                result += part.getCount() * unit.getDefenseCavalry() * techFactor;
-            }
+    private double[] calculateDefStrengths() {
+        double[] result = new double[2];
+        Enumeration<UnitHolder> units = getDef().keys();
+        while (units.hasMoreElements()) {
+            UnitHolder unit = units.nextElement();
+            AbstractUnitElement unitElement = getDef().get(unit);
+            result[ID_INFANTRY] += unitElement.getCount() * unit.getDefense() * getTechFactor(unitElement.getTech());
+            result[ID_CAVALRY] += unitElement.getCount() * unit.getDefenseCavalry() * getTechFactor(unitElement.getTech());
         }
-        return result * ((isNightBonus()) ? 2 : 1);
+
+        result[ID_INFANTRY] = result[ID_INFANTRY] * ((isNightBonus()) ? 2 : 1);
+        result[ID_CAVALRY] = result[ID_CAVALRY] * ((isNightBonus()) ? 2 : 1);
+        return result;
     }
 
     private double getTechFactor(int pLevel) {
@@ -241,9 +189,4 @@ public class OldSimulator extends AbstractSimulator {
                 return 1;
         }
     }
-    /*  public static void main(String[] args) {
-    OldSimulator sim = new OldSimulator();
-    sim.test();
-
-    }*/
 }

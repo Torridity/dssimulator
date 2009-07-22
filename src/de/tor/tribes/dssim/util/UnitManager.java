@@ -29,7 +29,7 @@ public class UnitManager {
 
     /**Parse the list of units*/
     public void parseUnits() {
-        String unitFile = "H:/Software/DSWorkbench/servers/de8/units_mod.xml";
+        String unitFile = "units_arch.xml";
         //buildingsFile += "/units.xml";
 
         try {
