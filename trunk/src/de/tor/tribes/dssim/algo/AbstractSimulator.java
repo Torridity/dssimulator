@@ -5,6 +5,7 @@
 package de.tor.tribes.dssim.algo;
 
 import de.tor.tribes.dssim.types.AbstractUnitElement;
+import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
 import java.util.Hashtable;
 
@@ -14,18 +15,19 @@ import java.util.Hashtable;
  */
 public abstract class AbstractSimulator {
 
+    public final int ID_INFANTRY = 0;
+    public final int ID_CAVALRY = 1;
+    public final int ID_ARCHER = 2;
+    private Hashtable<UnitHolder, AbstractUnitElement> off = null;
+    private Hashtable<UnitHolder, AbstractUnitElement> def = null;
     private boolean nightBonus = false;
     private double luck = 0.0;
     private double moral = 100;
     private int wallLevel = 0;
     private int buildingLevel = 0;
     private boolean win = false;
-    private double offDecrement = 0;
-    private double defDecrement = 0;
-    private int wallResult = 0;
-    private int cataResult = 0;
 
-    public abstract void calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel);
+    public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel);
 
     public boolean isInfantry(UnitHolder pUnit) {
         return !isCavalery(pUnit);
@@ -41,6 +43,22 @@ public abstract class AbstractSimulator {
     public boolean isArcher(UnitHolder pUnit) {
         return (pUnit.getPlainName().equals("archer") ||
                 pUnit.getPlainName().equals("marcher"));
+    }
+
+    public void setOff(Hashtable<UnitHolder, AbstractUnitElement> pOff) {
+        off = pOff;
+    }
+
+    public Hashtable<UnitHolder, AbstractUnitElement> getOff() {
+        return off;
+    }
+
+    public void setDef(Hashtable<UnitHolder, AbstractUnitElement> pDef) {
+        def = pDef;
+    }
+
+    public Hashtable<UnitHolder, AbstractUnitElement> getDef() {
+        return def;
     }
 
     /**
@@ -111,75 +129,5 @@ public abstract class AbstractSimulator {
      */
     public void setBuildingLevel(int buildingLevel) {
         this.buildingLevel = buildingLevel;
-    }
-
-    /**
-     * @return the win
-     */
-    public boolean isWin() {
-        return win;
-    }
-
-    /**
-     * @param win the win to set
-     */
-    public void setWin(boolean win) {
-        this.win = win;
-    }
-
-    /**
-     * @return the offDecrement
-     */
-    public double getOffDecrement() {
-        return offDecrement;
-    }
-
-    /**
-     * @param offDecrement the offDecrement to set
-     */
-    public void setOffDecrement(double offDecrement) {
-        this.offDecrement = offDecrement;
-    }
-
-    /**
-     * @return the defDecrement
-     */
-    public double getDefDecrement() {
-        return defDecrement;
-    }
-
-    /**
-     * @param defDecrement the defDecrement to set
-     */
-    public void setDefDecrement(double defDecrement) {
-        this.defDecrement = defDecrement;
-    }
-
-    /**
-     * @return the wallResult
-     */
-    public int getWallResult() {
-        return wallResult;
-    }
-
-    /**
-     * @param wallResult the wallResult to set
-     */
-    public void setWallResult(int wallResult) {
-        this.wallResult = wallResult;
-    }
-
-    /**
-     * @return the cataResult
-     */
-    public int getCataResult() {
-        return cataResult;
-    }
-
-    /**
-     * @param cataResult the cataResult to set
-     */
-    public void setCataResult(int cataResult) {
-        this.cataResult = cataResult;
     }
 }
