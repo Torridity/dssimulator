@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package de.tor.tribes.dssim.editor;
 
 import de.tor.tribes.dssim.Constants;
@@ -31,7 +30,11 @@ public class TechLevelCellEditor extends AbstractCellEditor implements TableCell
 
     @Override
     public Object getCellEditorValue() {
-        return mEditor.getSelectedItem();
+        int index = mEditor.getSelectedIndex() + 1;
+        if (index == 0) {
+            return (double) 1;
+        }
+        return (double) index;
     }
 
     @Override

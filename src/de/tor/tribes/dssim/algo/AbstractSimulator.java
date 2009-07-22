@@ -37,12 +37,17 @@ public abstract class AbstractSimulator {
         return (pUnit.getPlainName().equals("spy") ||
                 pUnit.getPlainName().equals("light") ||
                 pUnit.getPlainName().equals("marcher") ||
-                pUnit.getPlainName().equals("heavy"));
+                pUnit.getPlainName().equals("heavy") ||
+                pUnit.getPlainName().equals("knight"));
     }
 
     public boolean isArcher(UnitHolder pUnit) {
         return (pUnit.getPlainName().equals("archer") ||
                 pUnit.getPlainName().equals("marcher"));
+    }
+
+    public boolean isSpy(UnitHolder pUnit) {
+        return (pUnit.getPlainName().equals("spy"));
     }
 
     public void setOff(Hashtable<UnitHolder, AbstractUnitElement> pOff) {
