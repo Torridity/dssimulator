@@ -112,4 +112,22 @@ public class SimulatorTableModel extends DefaultTableModel {
         //return final result
         return result;
     }
+
+    public void setDef(Hashtable<UnitHolder, AbstractUnitElement> pDef) {
+        if (getColumnCount() == 6) {
+            //return new world values
+            for (int i = 0; i < getRowCount(); i++) {
+                String unitName = (String) getValueAt(i, 1);
+                UnitHolder unit = UnitManager.getSingleton().getUnitByPlainName(unitName);
+                setValueAt(pDef.get(unit).getCount(), i, 4);
+            }//end of all rows
+        } else {
+            for (int i = 0; i < getRowCount(); i++) {
+                String unitName = (String) getValueAt(i, 1);
+                UnitHolder unit = UnitManager.getSingleton().getUnitByPlainName(unitName);
+                setValueAt(pDef.get(unit).getCount(), i, 5);
+                setValueAt(pDef.get(unit).getTech(), i, 6);
+            }//end of all rows
+        }//end of getting table
+    }
 }

@@ -5,7 +5,6 @@
 package de.tor.tribes.dssim.util;
 
 import de.tor.tribes.dssim.types.UnitHolder;
-import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import org.jdom.Document;
@@ -28,13 +27,10 @@ public class UnitManager {
     }
 
     /**Parse the list of units*/
-    public void parseUnits() {
-        String unitFile = "units_arch.xml";
-        //buildingsFile += "/units.xml";
-
+    public void parseUnits(String pServerID) {
+        units.clear();
         try {
-            Document d = JaxenUtils.getDocument(new File(unitFile));
-            d = JaxenUtils.getDocument(new File(unitFile));
+            Document d = JaxenUtils.getDocument(UnitManager.class.getResourceAsStream("/res/servers/units_" + pServerID + ".xml"));
             List<Element> l = JaxenUtils.getNodes(d, "/config/*");
             for (Element e : l) {
                 try {
@@ -46,6 +42,7 @@ public class UnitManager {
         } catch (Exception outer) {
             outer.printStackTrace();
         }
+        System.out.println(units.size());
     }
 
     /**Get a unit by its name*/

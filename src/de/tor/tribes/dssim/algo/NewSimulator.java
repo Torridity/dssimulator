@@ -49,6 +49,8 @@ public class NewSimulator extends AbstractSimulator {
             //calculate losses
             double[] offLosses = calulateLosses(offStrengths, defStrengths, ID_OFF);
             double[] defLosses = calulateLosses(offStrengths, defStrengths, ID_DEF);
+
+            // <editor-fold defaultstate="collapsed" desc="Debug output">
             /*if (i == 0) {
             System.out.println("OffStrength[");
             for (int j = 0; j < 3; j++) {
@@ -71,6 +73,7 @@ public class NewSimulator extends AbstractSimulator {
             }
             System.out.println("]");
             }*/
+            // </editor-fold>
 
             //correct troops and repeat calculation
             correctTroops(offStrengths, offLosses, defLosses, result, (i == 0));
@@ -165,17 +168,6 @@ public class NewSimulator extends AbstractSimulator {
         return result;
     }
 
-    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel) {
-        SimulatorResult result = calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel);
-        int cnt = 0;
-        while (!result.isWin()) {
-            cnt++;
-            result = calculate(pOff, result.getSurvivingDef(), pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel());
-        }
-        result.setNukes(cnt);
-        return result;
-    }
-
     private double[] calculateOffStrengths(Hashtable<UnitHolder, AbstractUnitElement> pTable) {
         double[] result = new double[3];
         Enumeration<UnitHolder> units = pTable.keys();
@@ -212,7 +204,6 @@ public class NewSimulator extends AbstractSimulator {
         double cavalryMulti = (totalOff == 0) ? 0 : pOffStrengths[ID_CAVALRY] / totalOff;
         double archerMulti = (totalOff == 0) ? 0 : pOffStrengths[ID_ARCHER] / totalOff;
         Enumeration<UnitHolder> units = pTable.keys();
-        double moral = getMoral() / 100;
         while (units.hasMoreElements()) {
             UnitHolder unit = units.nextElement();
             AbstractUnitElement element = pTable.get(unit);
@@ -243,9 +234,9 @@ public class NewSimulator extends AbstractSimulator {
 
         System.out.println("WallAtFight: " + pWallAtFight);
         System.out.println("WallMulti: " + Math.pow(1.037, pWallAtFight));*/
-        result[0] = result[0] * luck * moral * nightBonus * Math.pow(1.037, pWallAtFight) + basicDefense[0];
-        result[1] = result[1] * luck * moral * nightBonus * Math.pow(1.037, pWallAtFight) + basicDefense[1];
-        result[2] = result[2] * luck * moral * nightBonus * Math.pow(1.037, pWallAtFight) + basicDefense[2];
+        result[0] = result[0] * nightBonus * Math.pow(1.037, pWallAtFight) + basicDefense[0];
+        result[1] = result[1] * nightBonus * Math.pow(1.037, pWallAtFight) + basicDefense[1];
+        result[2] = result[2] * nightBonus * Math.pow(1.037, pWallAtFight) + basicDefense[2];
         /* System.out.println("FinalResult[");
         for (int j = 0; j < 3; j++) {
         System.out.println("  " + result[j]);
