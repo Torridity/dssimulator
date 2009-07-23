@@ -29,6 +29,21 @@ public abstract class AbstractSimulator {
 
     public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel);
 
+    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel) {
+        SimulatorResult result = calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel);
+        int cnt = 1;
+        while (!result.isWin() && cnt <= 1000) {
+            cnt++;
+            result = calculate(pOff, result.getSurvivingDef(), pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel());
+        }
+        if (cnt > 1000) {
+            result.setNukes(Integer.MAX_VALUE);
+        } else {
+            result.setNukes(cnt);
+        }
+        return result;
+    }
+
     public boolean isInfantry(UnitHolder pUnit) {
         return !isCavalery(pUnit);
     }
