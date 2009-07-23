@@ -42,8 +42,8 @@ public class OldSimulator extends AbstractSimulator {
         if (rams != null) {
             ramCount = rams.getCount();
             double wallReduction = ramCount / (4 * Math.pow(1.090012, getWallLevel()));
-            if (wallReduction > (double) getWallLevel() / 2) {
-                wallReduction = (double) getWallLevel() / 2;
+            if (wallReduction > (double) getWallLevel() / 2.0) {
+                wallReduction = (double) getWallLevel() / 2.0;
             }
             switch (rams.getTech()) {
                 case 2: {

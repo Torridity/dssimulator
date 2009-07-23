@@ -144,7 +144,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Simulator");
+        setTitle("A*Star 1.0");
 
         jButton1.setText("Schließen");
 
@@ -378,8 +378,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             SimulatorResult result = sim.calculate(off, def, nightBonus, luck, moral, wallLevel, cataTarget);
             buildResultTable(result);
         } else {
-            Integer count = 1;
-            calculateOffsToKill(off, def, nightBonus, luck, moral, wallLevel, cataTarget, count);
+            SimulatorResult result = sim.bunkerBuster(off, def, nightBonus, luck, moral, wallLevel, cataTarget);
+            System.out.println("Busters: " + result.getNukes());
+            buildResultTable(result);
         }
     }
 
@@ -489,15 +490,15 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
                 if (won) {
                     if (row == 0 || row == 1 || row == 2) {
-                        ((JLabel) c).setBackground(Color.GREEN);
+                        ((JLabel) c).setBackground(Constants.WINNER_GREEN);
                     } else if (row == 4 || row == 5 || row == 6) {
-                        ((JLabel) c).setBackground(Color.RED);
+                        ((JLabel) c).setBackground(Constants.LOSER_RED);
                     }
                 } else {
                     if (row == 0 || row == 1 || row == 2) {
-                        ((JLabel) c).setBackground(Color.RED);
+                        ((JLabel) c).setBackground(Constants.LOSER_RED);
                     } else if (row == 4 || row == 5 || row == 6) {
-                        ((JLabel) c).setBackground(Color.GREEN);
+                        ((JLabel) c).setBackground(Constants.WINNER_GREEN);
                     }
                 }
                 return c;
@@ -535,7 +536,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
         System.setProperty("swing.defaultlaf", "net.sourceforge.napkinlaf.NapkinLookAndFeel");
-
 
         //UIManager.put("Panel.background", Constants.DS_BACK);
       /*  UIManager.put("Label.background", Constants.DS_BACK);

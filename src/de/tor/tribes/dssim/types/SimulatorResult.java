@@ -6,7 +6,6 @@ package de.tor.tribes.dssim.types;
 
 import de.tor.tribes.dssim.util.UnitManager;
 import java.util.Hashtable;
-import javax.activation.DataHandler;
 
 /**
  *
@@ -15,6 +14,7 @@ import javax.activation.DataHandler;
 public class SimulatorResult {
 
     private boolean win = false;
+    private int nukes = 1;
     private Hashtable<UnitHolder, AbstractUnitElement> survivingOff = null;
     private Hashtable<UnitHolder, AbstractUnitElement> survivingDef = null;
     private int wallLevel = 0;
@@ -42,6 +42,14 @@ public class SimulatorResult {
             copy = new AbstractUnitElement(unit, element.getCount(), element.getTech());
             survivingDef.put(unit, copy);
         }
+    }
+
+    public void setNukes(int pNukes) {
+        nukes = pNukes;
+    }
+
+    public int getNukes() {
+        return nukes;
     }
 
     /**
