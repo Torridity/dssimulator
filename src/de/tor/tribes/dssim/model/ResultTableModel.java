@@ -4,8 +4,9 @@
  */
 package de.tor.tribes.dssim.model;
 
-import de.tor.tribes.dssim.types.UnitHolder;
 import de.tor.tribes.dssim.util.UnitManager;
+import java.util.LinkedList;
+import java.util.List;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -29,15 +30,31 @@ public class ResultTableModel extends DefaultTableModel {
         return SINGLETON;
     }
 
-    public void setupModel() {
+    public void reset() {
+        SINGLETON = null;
+    }
 
-        if (UnitManager.getSingleton().getUnits().length > 11) {
-            columnNames = new String[]{"", "spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob"};
-            columnClasses = new Class[]{String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class};
+    public void setupModel() {
+        /*if (UnitManager.getSingleton().getUnits().length > 11) {
+        columnNames = new String[]{"", "spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob"};
+        columnClasses = new Class[]{String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class};
         } else {
-            columnNames = new String[]{"", "spear", "sword", "axe", "spy", "light", "heavy", "ram", "catapult", "snob"};
-            columnClasses = new Class[]{String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class};
+        columnNames = new String[]{"", "spear", "sword", "axe", "spy", "light", "heavy", "ram", "catapult", "snob"};
+        columnClasses = new Class[]{String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class};
+        }*/
+        String[] ordered = new String[]{"", "spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob"};
+        List<String> columns = new LinkedList<String>();
+        List<Class> classes = new LinkedList<Class>();
+        columns.add("");
+        classes.add(String.class);
+        for (String col : ordered) {
+            if (UnitManager.getSingleton().getUnitByPlainName(col) != null) {
+                columns.add(col);
+                classes.add(Integer.class);
+            }
         }
+        columnNames = columns.toArray(new String[]{});
+        columnClasses = classes.toArray(new Class[]{});
     }
 
     @Override

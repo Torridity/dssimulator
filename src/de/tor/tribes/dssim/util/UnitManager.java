@@ -42,7 +42,6 @@ public class UnitManager {
         } catch (Exception outer) {
             outer.printStackTrace();
         }
-        System.out.println(units.size());
     }
 
     /**Get a unit by its name*/

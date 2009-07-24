@@ -21,12 +21,15 @@ import de.tor.tribes.dssim.model.SimulatorTableModel;
 import de.tor.tribes.dssim.renderer.TableHeaderRenderer;
 import de.tor.tribes.dssim.renderer.UnitTableCellRenderer;
 import de.tor.tribes.dssim.types.AbstractUnitElement;
+import de.tor.tribes.dssim.types.KnightItem;
 import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
+import de.tor.tribes.dssim.util.ConfigManager;
 import de.tor.tribes.dssim.util.ImageManager;
 import de.tor.tribes.dssim.util.UnitManager;
 import java.awt.AWTEvent;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
@@ -34,13 +37,14 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
 /**
- *
+ *@TODO Set pala depending on pala item selection
  * @author Charon
  */
 public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
@@ -68,14 +72,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         } catch (Exception e) {
         }
         buildServerList();
-        jServerList.setSelectedItem("de4");
+        jServerList.setSelectedItem("de45");
         fireServerChangedEvent(null);
     }
 
     private void buildServerList() {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
         for (int i = 4; i <= 47; i++) {
-            if (i != 3 && i != 9 && i != 34) {
+            if (i != 9 && i != 34) {
                 model.addElement("de" + i);
             }
         }
@@ -89,7 +93,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jAttackerTable.setDefaultEditor(Double.class, new TechLevelCellEditor(3));
         jAttackerTable.setDefaultEditor(Integer.class, new SpreadSheetCellEditor());
         jAttackerTable.setDefaultRenderer(String.class, new UnitTableCellRenderer());
-        if (attackerModel.getColumnCount() == 8) {
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_TECH_3) {
             //old model (empty, unit, attacker, tech,empty, defender, tech, empty)
             jAttackerTable.getColumnModel().getColumn(1).setMaxWidth(60);
             jAttackerTable.getColumnModel().getColumn(2).setMaxWidth(80);
@@ -99,39 +103,56 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             jAttackerTable.getColumnModel().getColumn(6).setMaxWidth(40);
             jAttackerTable.invalidate();
             for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
-                attackerModel.addRow(new Object[]{"", unit.getPlainName(), 0, 1.0, "", 0, 1.0, ""});
+                attackerModel.addRow(new Object[]{null, unit.getPlainName(), 0, 1.0, null, 0, 1.0, null});
             }
             jAttackerTable.revalidate();
         } else {
             //new model (empty, unit, attacker, empty, defender, empty)
-            jAttackerTable.getColumnModel().getColumn(1).setMaxWidth(60);
-            jAttackerTable.getColumnModel().getColumn(2).setMaxWidth(80);
-            jAttackerTable.getColumnModel().getColumn(3).setMaxWidth(10);
-            jAttackerTable.getColumnModel().getColumn(4).setMaxWidth(80);
+            jAttackerTable.getColumnModel().getColumn(1).setMaxWidth(50);
+            jAttackerTable.getColumnModel().getColumn(2).setMaxWidth(70);
+            jAttackerTable.getColumnModel().getColumn(3).setMaxWidth(5);
+            jAttackerTable.getColumnModel().getColumn(4).setMaxWidth(70);
             jAttackerTable.invalidate();
             for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
-                attackerModel.addRow(new Object[]{"", unit.getPlainName(), 0, "", 0, ""});
+                attackerModel.addRow(new Object[]{null, unit.getPlainName(), 0, "", 0, null});
             }
-            jAttackerTable.revalidate();
         }
-
+        jAttackerTable.revalidate();
         jAttackerTable.setRowHeight(20);
+
         jScrollPane1.getViewport().setBackground(Constants.DS_BACK_LIGHT);
         jAttackerTable.setBackground(Constants.DS_BACK_LIGHT);
-        /* attackerModel.addTableModelListener(new TableModelListener() {
-
-        @Override
-        public void tableChanged(TableModelEvent e) {
-        fireCalculateEvent();
-        }
-        });*/
 
         //add header renderers
+
         for (int i = 0; i < jAttackerTable.getColumnCount(); i++) {
             jAttackerTable.getColumnModel().getColumn(i).setHeaderRenderer(new TableHeaderRenderer());
         }
 
+        //setup knight items
+        DefaultListModel model = new DefaultListModel();
+        DefaultListModel model2 = new DefaultListModel();
+        if (ConfigManager.getSingleton().getKnightType() == ConfigManager.ID_KNIGHT_WITH_ITEMS) {
+            for (int i = 0; i < KnightItem.ID_SNOB; i++) {
+                model.addElement(KnightItem.factoryKnightItem(i));
+                model2.addElement(KnightItem.factoryKnightItem(i));
+            }
+        } else {
+            model.addElement(KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM));
+            model2.addElement(KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM));
+        }
+        jOffKnightItemList.setModel(model);
+        jDefKnightItemList.setModel(model2);
+        jOffKnightItemList.setSelectedIndex(0);
+        jDefKnightItemList.setSelectedIndex(0);
+
         jResultTable.setModel(ResultTableModel.getSingleton());
+        Dimension dim = new Dimension(jScrollPane1.getWidth(), UnitManager.getSingleton().getUnits().length * 20 + 20 + 1);
+        jPanel3.setPreferredSize(dim);
+        jPanel3.setMinimumSize(dim);
+        jPanel3.setSize(dim);
+        jPanel3.doLayout();
+        pack();
     }
 
     /** This method is called from within the constructor to
@@ -144,13 +165,15 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel4 = new javax.swing.JPanel();
+        jComboBox1 = new javax.swing.JComboBox();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jList1 = new javax.swing.JList();
         jPanel1 = new javax.swing.JPanel();
         jLabel28 = new javax.swing.JLabel();
         jLabel29 = new javax.swing.JLabel();
         jLabel30 = new javax.swing.JLabel();
         jNightBonus = new javax.swing.JCheckBox();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jAttackerTable = new javax.swing.JTable();
         jScrollPane3 = new javax.swing.JScrollPane();
         jResultTable = new javax.swing.JTable();
         jWallInfo = new javax.swing.JLabel();
@@ -163,12 +186,51 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jNukeInfo = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jAttackerTable = new javax.swing.JTable();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jDefKnightItemList = new javax.swing.JList();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        jOffKnightItemList = new javax.swing.JList();
         jPanel2 = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
         jServerList = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
+
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        jList1.setModel(new javax.swing.AbstractListModel() {
+            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+            public int getSize() { return strings.length; }
+            public Object getElementAt(int i) { return strings[i]; }
+        });
+        jScrollPane2.setViewportView(jList1);
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(103, 103, 103)
+                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(68, 68, 68)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(23, Short.MAX_VALUE))
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(75, 75, 75)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(177, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("tab1", jPanel4);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("A*Star 1.0");
@@ -178,17 +240,21 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jLabel28.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/wall.png"))); // NOI18N
 
         jLabel29.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/masks.png"))); // NOI18N
-        jLabel29.setMaximumSize(new java.awt.Dimension(30, 14));
-        jLabel29.setMinimumSize(new java.awt.Dimension(30, 14));
-        jLabel29.setPreferredSize(new java.awt.Dimension(30, 14));
+        jLabel29.setMaximumSize(new java.awt.Dimension(16, 16));
+        jLabel29.setMinimumSize(new java.awt.Dimension(16, 16));
+        jLabel29.setPreferredSize(new java.awt.Dimension(16, 16));
 
         jLabel30.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/klee.png"))); // NOI18N
-        jLabel30.setMaximumSize(new java.awt.Dimension(30, 14));
-        jLabel30.setMinimumSize(new java.awt.Dimension(30, 14));
-        jLabel30.setPreferredSize(new java.awt.Dimension(30, 14));
+        jLabel30.setMaximumSize(new java.awt.Dimension(16, 16));
+        jLabel30.setMinimumSize(new java.awt.Dimension(16, 16));
+        jLabel30.setPreferredSize(new java.awt.Dimension(16, 16));
 
         jNightBonus.setText("Nachtbonus");
+        jNightBonus.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jNightBonus.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
         jNightBonus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/sun.gif"))); // NOI18N
+        jNightBonus.setIconTextGap(2);
+        jNightBonus.setMargin(new java.awt.Insets(2, 0, 2, 2));
         jNightBonus.setMaximumSize(new java.awt.Dimension(85, 18));
         jNightBonus.setMinimumSize(new java.awt.Dimension(85, 18));
         jNightBonus.setOpaque(false);
@@ -199,28 +265,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 fireNightBonusStateChangedEvent(evt);
             }
         });
-
-        jScrollPane1.setBackground(new java.awt.Color(225, 213, 190));
-        jScrollPane1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(225, 213, 190), 1, true));
-        jScrollPane1.setMaximumSize(new java.awt.Dimension(160, 404));
-        jScrollPane1.setMinimumSize(new java.awt.Dimension(160, 404));
-        jScrollPane1.setOpaque(false);
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(160, 404));
-
-        jAttackerTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        jAttackerTable.setGridColor(new java.awt.Color(225, 213, 190));
-        jAttackerTable.setOpaque(false);
-        jScrollPane1.setViewportView(jAttackerTable);
 
         jScrollPane3.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(225, 213, 190), 1, true));
 
@@ -249,9 +293,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jWallSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, 20, 1));
         jWallSpinner.setToolTipText("Wallstufe");
-        jWallSpinner.setMaximumSize(new java.awt.Dimension(83, 18));
-        jWallSpinner.setMinimumSize(new java.awt.Dimension(83, 18));
-        jWallSpinner.setPreferredSize(new java.awt.Dimension(83, 18));
+        jWallSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
+        jWallSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
+        jWallSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
         jWallSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 fireStateChangedEvent(evt);
@@ -260,9 +304,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jMoralSpinner.setModel(new javax.swing.SpinnerNumberModel(100, 30, 100, 1));
         jMoralSpinner.setToolTipText("Moral");
-        jMoralSpinner.setMaximumSize(new java.awt.Dimension(83, 18));
-        jMoralSpinner.setMinimumSize(new java.awt.Dimension(83, 18));
-        jMoralSpinner.setPreferredSize(new java.awt.Dimension(83, 18));
+        jMoralSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
+        jMoralSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
+        jMoralSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
         jMoralSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 fireStateChangedEvent(evt);
@@ -271,9 +315,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jLuckSpinner.setModel(new javax.swing.SpinnerNumberModel(0.0d, -25.0d, 25.0d, 0.1d));
         jLuckSpinner.setToolTipText("Glück");
-        jLuckSpinner.setMaximumSize(new java.awt.Dimension(83, 18));
-        jLuckSpinner.setMinimumSize(new java.awt.Dimension(83, 18));
-        jLuckSpinner.setPreferredSize(new java.awt.Dimension(83, 18));
+        jLuckSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
+        jLuckSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
+        jLuckSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
         jLuckSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 fireStateChangedEvent(evt);
@@ -288,9 +332,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jCataTargetSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, 30, 1));
         jCataTargetSpinner.setToolTipText("Gebäudestufe");
-        jCataTargetSpinner.setMaximumSize(new java.awt.Dimension(83, 18));
-        jCataTargetSpinner.setMinimumSize(new java.awt.Dimension(83, 18));
-        jCataTargetSpinner.setPreferredSize(new java.awt.Dimension(83, 18));
+        jCataTargetSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
+        jCataTargetSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
+        jCataTargetSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
         jCataTargetSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 fireStateChangedEvent(evt);
@@ -311,6 +355,49 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jNukeInfo.setText("(Einzelangriff)");
         jNukeInfo.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createEtchedBorder(), javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0)));
 
+        jPanel3.setMaximumSize(new java.awt.Dimension(2147483647, 280));
+        jPanel3.setPreferredSize(new java.awt.Dimension(516, 200));
+        jPanel3.setLayout(new java.awt.BorderLayout());
+
+        jScrollPane1.setBackground(new java.awt.Color(225, 213, 190));
+        jScrollPane1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(225, 213, 190), 1, true));
+        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        jScrollPane1.setMaximumSize(new java.awt.Dimension(800, 280));
+        jScrollPane1.setMinimumSize(new java.awt.Dimension(160, 120));
+        jScrollPane1.setOpaque(false);
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(160, 120));
+
+        jAttackerTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jAttackerTable.setGridColor(new java.awt.Color(225, 213, 190));
+        jAttackerTable.setOpaque(false);
+        jAttackerTable.setPreferredSize(new java.awt.Dimension(500, 252));
+        jScrollPane1.setViewportView(jAttackerTable);
+
+        jPanel3.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+
+        jScrollPane5.setMaximumSize(new java.awt.Dimension(180, 70));
+        jScrollPane5.setMinimumSize(new java.awt.Dimension(180, 70));
+        jScrollPane5.setPreferredSize(new java.awt.Dimension(180, 70));
+
+        jScrollPane5.setViewportView(jDefKnightItemList);
+
+        jScrollPane6.setMaximumSize(new java.awt.Dimension(180, 70));
+        jScrollPane6.setMinimumSize(new java.awt.Dimension(180, 70));
+        jScrollPane6.setPreferredSize(new java.awt.Dimension(180, 70));
+
+        jScrollPane6.setViewportView(jOffKnightItemList);
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -318,70 +405,85 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel30, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLuckSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jMoralSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addComponent(jNightBonus, javax.swing.GroupLayout.DEFAULT_SIZE, 266, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel31)
-                            .addComponent(jLabel28))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jWallSpinner, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+                    .addComponent(jWallInfo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+                    .addComponent(jBuildingInfo, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+                    .addComponent(jNukeInfo, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jWallInfo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
-                    .addComponent(jBuildingInfo, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
-                    .addComponent(jNukeInfo, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE))
+                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 64, Short.MAX_VALUE)
+                                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 424, Short.MAX_VALUE))
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(jLuckSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jMoralSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel28)
+                                    .addComponent(jLabel31))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jWallSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(jNightBonus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 307, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jMoralSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jNightBonus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jWallSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel28))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLuckSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel28)
-                            .addComponent(jWallSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel31, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addGap(10, 10, 10)
+                            .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 48, Short.MAX_VALUE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jMoralSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLuckSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jNightBonus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 157, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 171, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
                 .addComponent(jWallInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jBuildingInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jNukeInfo, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(20, 20, 20))
+                .addContainerGap())
         );
 
         jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
@@ -437,9 +539,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jServerList, 0, 57, Short.MAX_VALUE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
+                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -455,14 +557,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(516, Short.MAX_VALUE))
+                .addContainerGap(367, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -471,11 +573,11 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -505,6 +607,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         } else {
             jNukeInfo.setText("Dorf clean nach " + ((nukes == 1) ? " 1 Angriff" : " " + nukes + " Angriffen"));
         }
+
         buildResultTable(result);
     }//GEN-LAST:event_fireBombDefEvent
 
@@ -520,11 +623,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private void fireServerChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireServerChangedEvent
         if (evt == null || evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
             try {
-                UnitManager.getSingleton().parseUnits((String) jServerList.getSelectedItem());
-                ResultTableModel.getSingleton().clear();
+                String serverID = (String) jServerList.getSelectedItem();
+                ConfigManager.getSingleton().parseConfig(serverID);
+                UnitManager.getSingleton().parseUnits(serverID);
+                SimulatorTableModel.getSingleton().reset();
+                ResultTableModel.getSingleton().reset();
                 SimulatorTableModel.getSingleton().setupModel();
                 ResultTableModel.getSingleton().setupModel();
-                if (SimulatorTableModel.getSingleton().getColumnCount() == 6) {
+                if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
                     sim = new NewSimulator();
                     lastResult = null;
                 } else {
@@ -536,6 +642,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
         }
     }//GEN-LAST:event_fireServerChangedEvent
 
@@ -548,7 +655,30 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         double luck = (Double) jLuckSpinner.getValue();
         double moral = (Integer) jMoralSpinner.getValue();
 
-        SimulatorResult result = sim.calculate(off, def, nightBonus, luck, moral, wallLevel, cataTarget);
+        //build knight item list
+
+        List<KnightItem> defItems = new LinkedList<KnightItem>();
+
+        KnightItem offItem = (KnightItem) jOffKnightItemList.getSelectedValue();
+        if (offItem == null) {
+            offItem = KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM);
+        }
+        if (jDefKnightItemList.getSelectedIndices() != null) {
+            for (int i : jDefKnightItemList.getSelectedIndices()) {
+                KnightItem item = (KnightItem) jDefKnightItemList.getModel().getElementAt(i);
+                if (item.getItemId() != KnightItem.ID_NO_ITEM) {
+                    defItems.add(item);
+                }
+            }
+        }
+
+        SimulatorResult result = null;
+        if (sim instanceof NewSimulator) {
+            //use items
+            result = ((NewSimulator) sim).calculate(off, def, offItem, defItems, nightBonus, luck, moral, wallLevel, cataTarget);
+        } else {
+            result = sim.calculate(off, def, nightBonus, luck, moral, wallLevel, cataTarget);
+        }
         jNukeInfo.setText("(Einzelangriff)");
         buildResultTable(result);
     }
@@ -558,10 +688,11 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         ResultTableModel.getSingleton().clear();
 
         // <editor-fold defaultstate="collapsed" desc="Build header renderer">
-        for (int i = 0; i < jResultTable.getColumnCount(); i++) {
+        for (int i = 0; i <
+                jResultTable.getColumnCount(); i++) {
             jResultTable.getColumn(jResultTable.getColumnName(i)).setHeaderRenderer(new UnitTableCellRenderer());
         }
-        // </editor-fold>
+// </editor-fold>
 
         // <editor-fold defaultstate="collapsed" desc=" Build result table rows">
         List<Object> attackerBefore = new LinkedList<Object>();
@@ -579,7 +710,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
         Hashtable<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
-        for (int i = 1; i < ResultTableModel.getSingleton().getColumnCount(); i++) {
+        for (int i = 1; i <
+                ResultTableModel.getSingleton().getColumnCount(); i++) {
             UnitHolder u = UnitManager.getSingleton().getUnitByPlainName(ResultTableModel.getSingleton().getColumnName(i));
             AbstractUnitElement offElement = off.get(u);
             AbstractUnitElement defElement = def.get(u);
@@ -616,7 +748,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         DefaultTableCellRenderer winLossRenderer = new DefaultTableCellRenderer() {
 
             @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            public Component getTableCellRendererComponent(
+                    JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = new DefaultTableCellRenderer().getTableCellRendererComponent(table, value, hasFocus, hasFocus, row, row);
                 c.setBackground(Constants.DS_BACK);
                 ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
@@ -632,12 +765,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                     } else if (row == 4 || row == 5 || row == 6) {
                         ((JLabel) c).setBackground(Constants.LOSER_RED);
                     }
+
                 } else {
                     if (row == 0 || row == 1 || row == 2) {
                         ((JLabel) c).setBackground(Constants.LOSER_RED);
                     } else if (row == 4 || row == 5 || row == 6) {
                         ((JLabel) c).setBackground(Constants.WINNER_GREEN);
                     }
+
                 }
                 return c;
             }
@@ -646,11 +781,13 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jScrollPane3.getViewport().setBackground(Constants.DS_BACK_LIGHT);
         jResultTable.setDefaultRenderer(Integer.class, winLossRenderer);
+
         jResultTable.setDefaultRenderer(String.class, winLossRenderer);
         jResultTable.getColumnModel().getColumn(0).setMinWidth(100);
         jResultTable.getColumnModel().getColumn(0).setResizable(false);
 
         int wall = (Integer) jWallSpinner.getValue();
+
         if (wall != pResult.getWallLevel()) {
             jWallInfo.setText("Wall zerstört von Stufe " + wall + " auf Stufe " + pResult.getWallLevel());
         } else if (wall == 0) {
@@ -658,7 +795,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         } else {
             jWallInfo.setText("Wall nicht beschädigt");
         }
-
         int building = (Integer) jCataTargetSpinner.getValue();
         if (building != pResult.getBuildingLevel()) {
             jBuildingInfo.setText("Gebäude zerstört von Stufe " + building + " auf Stufe " + pResult.getBuildingLevel());
@@ -682,21 +818,25 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         });
 
-    /*  List<Integer> nonos = new LinkedList<Integer>();
-    nonos.add(3);
-    nonos.add(9);
-    nonos.add(34);
-    for (int i = 1; i <= 47; i++) {
-    if (!nonos.contains(i)) {
+
+    /*
+    System.setProperty("http.proxyHost", "proxy.fzk.de");
+    System.setProperty("http.proxyPort", "8000");
+
+    for (int i = 4; i <= 47; i++) {
+    if (i != 9 && i != 34) {
     System.out.println("Getting units from server de" + i);
     try {
-    String url = "http://de" + i + ".die-staemme.de/interface.php?func=get_unit_info";
+
+    String config = "interface.php?func=get_config";
+    String unit = "interface.php?func=get_unit_info";
+    String url = "http://de" + i + ".die-staemme.de/" + unit;
     URLConnection ucon = new URL(url).openConnection();
     BufferedReader reader = new BufferedReader(new InputStreamReader(ucon.getInputStream()));
-    FileWriter fout = new FileWriter("./servers/units_de" + i + ".xml");
+    FileWriter fout = new FileWriter("./src/res/servers/units_de" + i + ".xml");
     String line = null;
     while ((line = reader.readLine()) != null) {
-    fout.write(line);
+    fout.write(line + "\n");
     }
     fout.flush();
     fout.close();
@@ -705,8 +845,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     e.printStackTrace();
     }
     }
-    }*/
-
+    }
+     */
 
     }
 
@@ -717,6 +857,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JSpinner jCataTargetSpinner;
+    private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JList jDefKnightItemList;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel28;
     private javax.swing.JLabel jLabel29;
@@ -724,15 +866,22 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel31;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JList jList1;
     private javax.swing.JSpinner jLuckSpinner;
     private javax.swing.JSpinner jMoralSpinner;
     private javax.swing.JCheckBox jNightBonus;
     private javax.swing.JLabel jNukeInfo;
+    private javax.swing.JList jOffKnightItemList;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JTable jResultTable;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JComboBox jServerList;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel jWallInfo;
