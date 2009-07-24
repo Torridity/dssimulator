@@ -5,7 +5,9 @@
 package de.tor.tribes.dssim.model;
 
 import de.tor.tribes.dssim.types.AbstractUnitElement;
+import de.tor.tribes.dssim.types.KnightItem;
 import de.tor.tribes.dssim.types.UnitHolder;
+import de.tor.tribes.dssim.util.ConfigManager;
 import de.tor.tribes.dssim.util.UnitManager;
 import java.util.Hashtable;
 import javax.swing.table.DefaultTableModel;
@@ -31,10 +33,14 @@ public class SimulatorTableModel extends DefaultTableModel {
         return SINGLETON;
     }
 
+    public void reset() {
+        SINGLETON = null;
+    }
+
     public void setupModel() {
-        if (UnitManager.getSingleton().getUnits().length > 11) {
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
             columnNames = new String[]{"", "Einheit", "Angreifer", "", "Verteidiger", ""};
-            columnClasses = new Class[]{Object.class, String.class, Integer.class, Object.class, Integer.class, Object.class};
+            columnClasses = new Class[]{KnightItem.class, String.class, Integer.class, Object.class, Integer.class, KnightItem.class};
         } else {
             columnNames = new String[]{"", "Einheit", "Angreifer", "Tech", "", "Verteidiger", "Tech", ""};
             columnClasses = new Class[]{Object.class, String.class, Integer.class, Double.class, Object.class, Integer.class, Double.class, Object.class};
@@ -58,12 +64,15 @@ public class SimulatorTableModel extends DefaultTableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return (columnIndex != 0);
+        if (getValueAt(rowIndex, columnIndex) != null) {
+            return true;
+        }
+        return false;
     }
 
     public Hashtable<UnitHolder, AbstractUnitElement> getOff() {
         Hashtable<UnitHolder, AbstractUnitElement> result = new Hashtable<UnitHolder, AbstractUnitElement>();
-        if (getColumnCount() == 6) {
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
             //return new world values
             for (int i = 0; i < getRowCount(); i++) {
                 Integer count = (Integer) getValueAt(i, 2);
@@ -89,7 +98,7 @@ public class SimulatorTableModel extends DefaultTableModel {
 
     public Hashtable<UnitHolder, AbstractUnitElement> getDef() {
         Hashtable<UnitHolder, AbstractUnitElement> result = new Hashtable<UnitHolder, AbstractUnitElement>();
-        if (getColumnCount() == 6) {
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
             //return new world values
             for (int i = 0; i < getRowCount(); i++) {
                 Integer count = (Integer) getValueAt(i, 4);
@@ -112,9 +121,34 @@ public class SimulatorTableModel extends DefaultTableModel {
         //return final result
         return result;
     }
+    /*
+    public KnightItem getOffKnightItem() {
+    if (ConfigManager.getSingleton().getKnightType() != ConfigManager.ID_KNIGHT_WITH_ITEMS) {
+    return null;
+    }
+    for (int i = 0; i < getRowCount(); i++) {
+    if (getValueAt(i, 1).equals("knight")) {
+    return (KnightItem) getValueAt(i, 0);
+    }
+    }
+    return null;
+    }
+
+    public KnightItem getDefKnightItem() {
+    if (ConfigManager.getSingleton().getKnightType() != ConfigManager.ID_KNIGHT_WITH_ITEMS) {
+    return null;
+    }
+    for (int i = 0; i < getRowCount(); i++) {
+    if (getValueAt(i, 1).equals("knight")) {
+    return (KnightItem) getValueAt(i, 5);
+    }
+    }
+    return null;
+    }
+     */
 
     public void setDef(Hashtable<UnitHolder, AbstractUnitElement> pDef) {
-        if (getColumnCount() == 6) {
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
             //return new world values
             for (int i = 0; i < getRowCount(); i++) {
                 String unitName = (String) getValueAt(i, 1);

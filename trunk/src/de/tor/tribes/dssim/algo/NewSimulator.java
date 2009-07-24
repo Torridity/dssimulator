@@ -5,11 +5,14 @@
 package de.tor.tribes.dssim.algo;
 
 import de.tor.tribes.dssim.types.AbstractUnitElement;
+import de.tor.tribes.dssim.types.KnightItem;
 import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
 import de.tor.tribes.dssim.util.UnitManager;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -19,9 +22,42 @@ public class NewSimulator extends AbstractSimulator {
 
     private static final int ID_OFF = 0;
     private static final int ID_DEF = 1;
+    private KnightItem offItem = null;
+    private List<KnightItem> defItems = null;
+
+    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel) {
+        offItem = pOffItem;
+        defItems = pDefItems;
+        UnitHolder knight = UnitManager.getSingleton().getUnitByPlainName("knight");
+        if (knight != null) {
+            AbstractUnitElement elem = pOff.get(knight);
+            if (elem == null || elem.getCount() < 1) {
+                //add knight unit to off
+                System.out.println("adding pala");
+                elem.setCount(1);
+            }
+
+            elem = pDef.get(knight);
+            if (elem == null || elem.getCount() < pDefItems.size()) {
+                //set knight count to def element size
+                elem.setCount(pDefItems.size());
+            }
+        } else {
+            //no knight unit found, clear item list
+            offItem = KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM);
+            defItems = new LinkedList<KnightItem>();
+        }
+
+        return calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel);
+    }
 
     @Override
-    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel) {
+    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef,
+            boolean pNightBonus,
+            double pLuck,
+            double pMoral,
+            int pWallLevel,
+            int pBuildingLevel) {
         setOff(pOff);
         setDef(pDef);
         setMoral(pMoral);
@@ -29,6 +65,12 @@ public class NewSimulator extends AbstractSimulator {
         setNightBonus(pNightBonus);
         setWallLevel(pWallLevel);
         setBuildingLevel(pBuildingLevel);
+        if (offItem == null) {
+            offItem = KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM);
+        }
+        if (defItems == null) {
+            defItems = new LinkedList<KnightItem>();
+        }
         SimulatorResult result = new SimulatorResult(getOff(), getDef());
         AbstractUnitElement ramElement = pOff.get(UnitManager.getSingleton().getUnitByPlainName("ram"));
         int ramCount = 0;
@@ -123,15 +165,8 @@ public class NewSimulator extends AbstractSimulator {
         double buildingAfter = getBuildingLevel();
         AbstractUnitElement cata = getOff().get(UnitManager.getSingleton().getUnitByPlainName("catapult"));
         if (cata != null && cata.getCount() != 0) {
-            double[] offStrengths = calculateOffStrengths(getOff());
-            double[] defStrengths = calculateDefStrengths(getDef(), offStrengths, wallAtFight, true);
-            double offStrength = offStrengths[ID_INFANTRY] + offStrengths[ID_CAVALRY] + offStrengths[ID_ARCHER];
-            double defStrength = defStrengths[ID_INFANTRY] + defStrengths[ID_CAVALRY] + defStrengths[ID_ARCHER];
             if (!result.isWin()) {
-                /*  //attack losses
-                double buildingDemolish = Math.pow((offStrength / defStrength), 1.5) * (cata.getUnit().getAttack() * cata.getCount()) / (600 * Math.pow(1.090005, getBuildingLevel()));
-                System.out.println("Demo: " + buildingDemolish);
-                buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);*/
+                //attack lost
                 double lostUnits = 0;
                 double totalUnits = 0;
                 for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
@@ -141,12 +176,8 @@ public class NewSimulator extends AbstractSimulator {
                 double ratio = lostUnits / totalUnits;
                 int buildingDecrement = (int) Math.round(((cata.getCount() * ratio) * cata.getUnit().getAttack()) / (600 * Math.pow(1.090012, getBuildingLevel())));
                 buildingAfter = getBuildingLevel() - buildingDecrement;
-
             } else {
                 //attacker wins
-                /*double buildingDemolish = (2 - Math.pow((defStrength / offStrength), 1.5)) * (cata.getUnit().getAttack() * cata.getCount()) / (600 * Math.pow(1.090005, getBuildingLevel()));
-                System.out.println("Demo: " + buildingDemolish);
-                buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);*/
                 double maxDecrement = cata.getCount() * cata.getUnit().getAttack() / (300 * Math.pow(1.090012, getBuildingLevel()));
                 double lostUnits = 0;
                 double totalUnits = 0;
@@ -171,19 +202,23 @@ public class NewSimulator extends AbstractSimulator {
     private double[] calculateOffStrengths(Hashtable<UnitHolder, AbstractUnitElement> pTable) {
         double[] result = new double[3];
         Enumeration<UnitHolder> units = pTable.keys();
-
+        System.out.println("OffItem is: " + offItem);
         while (units.hasMoreElements()) {
             UnitHolder unit = units.nextElement();
             AbstractUnitElement element = pTable.get(unit);
+            //calculate knight item factor
+            System.out.println("Unit: " + unit + " (" + offItem.affectsUnit(unit) + ")");
+            double itemFactor = (offItem.affectsUnit(unit)) ? offItem.getOffFactor() : 1.0;
+            System.out.println("Using factor " + itemFactor);
             //add strength to all appropriate array elements (e.g. marcher is cavalry and archer)
             if (isInfantry(unit) && !isArcher(unit)) {
-                result[ID_INFANTRY] += unit.getAttack() * (double) element.getCount() * element.getTech();
+                result[ID_INFANTRY] += unit.getAttack() * (double) element.getCount() * element.getTech() * itemFactor;
             }
             if (isCavalery(unit) && !isArcher(unit)) {
-                result[ID_CAVALRY] += unit.getAttack() * (double) element.getCount() * element.getTech();
+                result[ID_CAVALRY] += unit.getAttack() * (double) element.getCount() * element.getTech() * itemFactor;
             }
             if (isArcher(unit)) {
-                result[ID_ARCHER] += unit.getAttack() * (double) element.getCount() * element.getTech();
+                result[ID_ARCHER] += unit.getAttack() * (double) element.getCount() * element.getTech() * itemFactor;
             }
         }
         double moral = getMoral() / 100;
