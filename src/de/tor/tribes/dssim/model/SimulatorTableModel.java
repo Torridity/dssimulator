@@ -121,31 +121,36 @@ public class SimulatorTableModel extends DefaultTableModel {
         //return final result
         return result;
     }
-    /*
-    public KnightItem getOffKnightItem() {
-    if (ConfigManager.getSingleton().getKnightType() != ConfigManager.ID_KNIGHT_WITH_ITEMS) {
-    return null;
-    }
-    for (int i = 0; i < getRowCount(); i++) {
-    if (getValueAt(i, 1).equals("knight")) {
-    return (KnightItem) getValueAt(i, 0);
-    }
-    }
-    return null;
+
+    public void setOffUnitCount(UnitHolder pUnit, int pCount) {
+        for (int i = 0; i < getRowCount(); i++) {
+            String unitName = (String) getValueAt(i, 1);
+            if (unitName != null && unitName.equals(pUnit.getPlainName())) {
+                setValueAt(pCount, i, 2);
+                return;
+            }
+        }
     }
 
-    public KnightItem getDefKnightItem() {
-    if (ConfigManager.getSingleton().getKnightType() != ConfigManager.ID_KNIGHT_WITH_ITEMS) {
-    return null;
+    public void setDefUnitCount(UnitHolder pUnit, int pCount) {
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
+            for (int i = 0; i < getRowCount(); i++) {
+                String unitName = (String) getValueAt(i, 1);
+                if (unitName != null && unitName.equals(pUnit.getPlainName())) {
+                    setValueAt(pCount, i, 4);
+                    return;
+                }
+            }
+        } else {
+            for (int i = 0; i < getRowCount(); i++) {
+                String unitName = (String) getValueAt(i, 1);
+                if (unitName != null && unitName.equals(pUnit.getPlainName())) {
+                    setValueAt(pCount, i, 5);
+                    return;
+                }
+            }
+        }
     }
-    for (int i = 0; i < getRowCount(); i++) {
-    if (getValueAt(i, 1).equals("knight")) {
-    return (KnightItem) getValueAt(i, 5);
-    }
-    }
-    return null;
-    }
-     */
 
     public void setDef(Hashtable<UnitHolder, AbstractUnitElement> pDef) {
         if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {

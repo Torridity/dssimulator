@@ -162,10 +162,12 @@ public class KnightItem {
                 }
             }
             case ID_RAM: {
-                return 2;
+                //strength of ram does not change, only the damage
+                return 1.0;
             }
             case ID_CATA: {
-                return 2;
+                 //strength of cata does not change, only the damage
+                return 1.0;
             }
 
             default: {

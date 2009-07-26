@@ -25,16 +25,17 @@ public abstract class AbstractSimulator {
     private double moral = 100;
     private int wallLevel = 0;
     private int buildingLevel = 0;
-    private boolean win = false;
+    private int farmLevel = 0;
 
-    public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel);
+    public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel);
 
-    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel) {
-        SimulatorResult result = calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel);
+    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel) {
+        SimulatorResult result = calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel);
+        setFarmLevel(pFarmLevel);
         int cnt = 1;
         while (!result.isWin() && cnt <= 1000) {
             cnt++;
-            result = calculate(pOff, result.getSurvivingDef(), pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel());
+            result = calculate(pOff, result.getSurvivingDef(), pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel(),pFarmLevel);
         }
         if (cnt > 1000) {
             result.setNukes(Integer.MAX_VALUE);
@@ -149,5 +150,19 @@ public abstract class AbstractSimulator {
      */
     public void setBuildingLevel(int buildingLevel) {
         this.buildingLevel = buildingLevel;
+    }
+
+    /**
+     * @return the farmLevel
+     */
+    public int getFarmLevel() {
+        return farmLevel;
+    }
+
+    /**
+     * @param farmLevel the farmLevel to set
+     */
+    public void setFarmLevel(int farmLevel) {
+        this.farmLevel = farmLevel;
     }
 }
