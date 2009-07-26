@@ -7,6 +7,7 @@ package de.tor.tribes.dssim.algo;
 import de.tor.tribes.dssim.types.AbstractUnitElement;
 import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
+import de.tor.tribes.dssim.util.ConfigManager;
 import de.tor.tribes.dssim.util.UnitManager;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -19,7 +20,7 @@ public class OldSimulator extends AbstractSimulator {
 
     boolean DEBUG = false;
 
-    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel) {
+    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel) {
         setOff(pOff);
         setDef(pDef);
         setMoral(pMoral);
@@ -27,14 +28,25 @@ public class OldSimulator extends AbstractSimulator {
         setNightBonus(pNightBonus);
         setWallLevel(pWallLevel);
         setBuildingLevel(pBuildingLevel);
+        setFarmLevel(pFarmLevel);
         SimulatorResult result = new SimulatorResult(getOff(), getDef());
         double[] offStrengths = calculateOffStrengthts();
         double[] defStrengths = calculateDefStrengths();
 
-
         double infantryRatio = offStrengths[ID_INFANTRY] / (offStrengths[ID_INFANTRY] + offStrengths[ID_CAVALRY]);
         double cavaleryRatio = 1 - infantryRatio;
         double defStrength = infantryRatio * defStrengths[ID_INFANTRY] + cavaleryRatio * defStrengths[ID_CAVALRY];
+
+        if (ConfigManager.getSingleton().getFarmLimit() != 0) {
+            double limit = getFarmLevel() * ConfigManager.getSingleton().getFarmLimit();
+            double defFarmUsage = calculateDefFarmUsage();
+            double factor = limit / defFarmUsage;
+            if (factor > 1.0) {
+                factor = 1.0;
+            }
+            defStrength = factor * defStrength;
+        }
+
         AbstractUnitElement rams = getOff().get(UnitManager.getSingleton().getUnitByPlainName("ram"));
         double ramCount = 0;
         double ramAttPoint = 0;
@@ -97,8 +109,13 @@ public class OldSimulator extends AbstractSimulator {
         println("OffStrength " + offStrength);
         println("DefStrength " + defStrength);
 
-        double lossRatioOff = Math.pow((defStrength / offStrength), 1.5);
-        double lossRatioDef = Math.pow((offStrength / defStrength), 1.5);
+        double lossPowerValue = 1.5;
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_TECH_10) {
+            lossPowerValue = 1.6;
+        }
+
+        double lossRatioOff = Math.pow((defStrength / offStrength), lossPowerValue);
+        double lossRatioDef = Math.pow((offStrength / defStrength), lossPowerValue);
         println("LossOff: " + lossRatioOff);
         println("LossDef: " + lossRatioDef);
         double wallAfter = getWallLevel();
@@ -122,8 +139,11 @@ public class OldSimulator extends AbstractSimulator {
                 buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
             } else {
                 //attacker wins
-                double buildingDemolish = (2 - Math.pow((defStrength / offStrength), 1.5)) * (cataAttPoint * cata.getCount()) / (600 * Math.pow(1.090012, getBuildingLevel()));
+                double buildingDemolish = (2 - Math.pow((defStrength / offStrength), 1.5)) * (cataAttPoint * cata.getCount()) / (600 * Math.pow(1.090012, (getBuildingLevel())));
                 println("DemoBuild " + buildingDemolish);
+                System.out.println("Demo " + buildingDemolish);
+                System.out.println("Str " + offStrength);
+                System.out.println("Fac " + buildingDemolish / offStrength);
                 buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
             }
         } else {
@@ -206,14 +226,30 @@ public class OldSimulator extends AbstractSimulator {
         return result;
     }
 
+    private double calculateDefFarmUsage() {
+        Enumeration<UnitHolder> units = getDef().keys();
+        int result = 0;
+        while (units.hasMoreElements()) {
+            UnitHolder unit = units.nextElement();
+            AbstractUnitElement unitElement = getDef().get(unit);
+            result += unit.getPop() * unitElement.getCount();
+        }
+        return result;
+    }
+
     private double getTechFactor(int pLevel) {
-        switch (pLevel) {
-            case 2:
-                return 1.25;
-            case 3:
-                return 1.4;
-            default:
-                return 1;
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_TECH_3) {
+            switch (pLevel) {
+                case 2:
+                    return 1.25;
+                case 3:
+                    return 1.4;
+                default:
+                    return 1;
+            }
+        } else {
+            //use 10 level tech factor
+            return Math.pow(1.04605, (pLevel - 1));
         }
     }
 }

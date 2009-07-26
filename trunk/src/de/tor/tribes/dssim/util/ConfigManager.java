@@ -24,6 +24,7 @@ public class ConfigManager {
     public final static int ID_KNIGHT_WITH_ITEMS = 2;
     private static ConfigManager SINGLETON = null;
     private int tech = 2;
+    private int farmLimit = 0;
     private int knightType = 0;
     private int knightNewItems = 0;
 
@@ -39,8 +40,10 @@ public class ConfigManager {
         try {
             Document d = JaxenUtils.getDocument(UnitManager.class.getResourceAsStream("/res/servers/config_" + pServerID + ".xml"));
             setTech(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/tech")));
+            setFarmLimit(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/farm_limit")));
             setKnightType(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight")));
             setKnightNewItems(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight_new_items")));
+
         } catch (Exception outer) {
             outer.printStackTrace();
         }
@@ -90,5 +93,19 @@ public class ConfigManager {
      */
     public void setKnightType(int knightType) {
         this.knightType = knightType;
+    }
+
+    /**
+     * @return the farmLimit
+     */
+    public int getFarmLimit() {
+        return farmLimit;
+    }
+
+    /**
+     * @param farmLimit the farmLimit to set
+     */
+    public void setFarmLimit(int farmLimit) {
+        this.farmLimit = farmLimit;
     }
 }
