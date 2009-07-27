@@ -18,7 +18,6 @@ public class ConfigManager {
     public final static int ID_TECH_10 = 0;
     public final static int ID_TECH_3 = 1;
     public final static int ID_SIMPLE_TECH = 2;
-
     public final static int ID_NO_KNIGHT = 0;
     public final static int ID_KNIGHT_WITHOUT_ITEMS = 1;
     public final static int ID_KNIGHT_WITH_ITEMS = 2;
@@ -27,7 +26,7 @@ public class ConfigManager {
     private int farmLimit = 0;
     private int knightType = 0;
     private int knightNewItems = 0;
-
+    private int church = 0;
 
     public static synchronized ConfigManager getSingleton() {
         if (SINGLETON == null) {
@@ -43,7 +42,7 @@ public class ConfigManager {
             setFarmLimit(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/farm_limit")));
             setKnightType(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight")));
             setKnightNewItems(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight_new_items")));
-
+            setChurch(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/church")));
         } catch (Exception outer) {
             outer.printStackTrace();
         }
@@ -107,5 +106,19 @@ public class ConfigManager {
      */
     public void setFarmLimit(int farmLimit) {
         this.farmLimit = farmLimit;
+    }
+
+    /**
+     * @return the church
+     */
+    public boolean isChurch() {
+        return (church == 1);
+    }
+
+    /**
+     * @param church the church to set
+     */
+    public void setChurch(int church) {
+        this.church = church;
     }
 }

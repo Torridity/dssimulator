@@ -20,7 +20,7 @@ public class OldSimulator extends AbstractSimulator {
 
     boolean DEBUG = false;
 
-    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel) {
+    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve) {
         setOff(pOff);
         setDef(pDef);
         setMoral(pMoral);
@@ -29,6 +29,8 @@ public class OldSimulator extends AbstractSimulator {
         setWallLevel(pWallLevel);
         setBuildingLevel(pBuildingLevel);
         setFarmLevel(pFarmLevel);
+        setAttackerBelieve(pAttackerBelieve);
+        setDefenderBelieve(pDefenderBelieve);
         SimulatorResult result = new SimulatorResult(getOff(), getDef());
         double[] offStrengths = calculateOffStrengthts();
         double[] defStrengths = calculateDefStrengths();
@@ -140,10 +142,8 @@ public class OldSimulator extends AbstractSimulator {
             } else {
                 //attacker wins
                 double buildingDemolish = (2 - Math.pow((defStrength / offStrength), 1.5)) * (cataAttPoint * cata.getCount()) / (600 * Math.pow(1.090012, (getBuildingLevel())));
+                //double buildingDemolish = (2 - Math.pow((defStrength / offStrength), 1.5)) * (cataAttPoint * cata.getCount()) / (1800 * Math.pow(1.090012, (getBuildingLevel())));
                 println("DemoBuild " + buildingDemolish);
-                System.out.println("Demo " + buildingDemolish);
-                System.out.println("Str " + offStrength);
-                System.out.println("Fac " + buildingDemolish / offStrength);
                 buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
             }
         } else {

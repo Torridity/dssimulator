@@ -26,10 +26,10 @@ public class NewSimulator extends AbstractSimulator {
     private KnightItem offItem = null;
     private List<KnightItem> defItems = null;
 
-    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel) {
+    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve) {
         offItem = pOffItem;
         defItems = pDefItems;
-        return calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel);
+        return calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel, pAttackerBelieve, pDefenderBelieve);
     }
 
     @Override
@@ -38,7 +38,10 @@ public class NewSimulator extends AbstractSimulator {
             double pLuck,
             double pMoral,
             int pWallLevel,
-            int pBuildingLevel, int pFarmLevel) {
+            int pBuildingLevel,
+            int pFarmLevel,
+            boolean pAttackerBelieve,
+            boolean pDefenderBelieve) {
         setOff(pOff);
         setDef(pDef);
         setMoral(pMoral);
@@ -47,6 +50,9 @@ public class NewSimulator extends AbstractSimulator {
         setWallLevel(pWallLevel);
         setBuildingLevel(pBuildingLevel);
         setFarmLevel(pFarmLevel);
+        setAttackerBelieve(pAttackerBelieve);
+        setDefenderBelieve(pDefenderBelieve);
+
         if (offItem == null) {
             offItem = KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM);
         }
@@ -60,11 +66,17 @@ public class NewSimulator extends AbstractSimulator {
             ramCount = ramElement.getCount();
         }
         double ramFactor = (offItem.affectsUnit(ramElement.getUnit())) ? 2.0 : 1.0;
+
+        if(!isAttackerBelieve()){
+            //if attacker does not believe, ram fight at half power
+            ramCount /= 2;
+        }
+
         int wallAtFight = getWallLevel() - (int) Math.round((ramCount * ramFactor) / (4 * Math.pow(1.090012, getWallLevel())));
         double additionalDamageFactor = 1.0;
-        if (ConfigManager.getSingleton().getKnightNewItems() == 0) {
+        if (ConfigManager.getSingleton().getKnightNewItems() == 0 || ramFactor == 1.0) {
             additionalDamageFactor = 1.0;
-        } else {
+            } else {
             additionalDamageFactor = 2.0;
         }
         if (wallAtFight < (int) Math.round((double) getWallLevel() / (2.0 * additionalDamageFactor))) {
@@ -172,9 +184,9 @@ public class NewSimulator extends AbstractSimulator {
                 buildingAfter = getBuildingLevel() - buildingDecrement;
             } else {
                 //attacker wins
-                //double maxDecrement = cata.getCount() * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.090012, getBuildingLevel()));
-                double maxDecrement = cata.getCount() * cata.getUnit().getAttack() * cataFactor / (24000 * Math.pow(1.090012, (3-getBuildingLevel())));
-                System.out.println("MaxDe1 " + maxDecrement);
+                double maxDecrement = cata.getCount() * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.090012, getBuildingLevel()));
+                //double maxDecrement = cata.getCount() * cata.getUnit().getAttack() * cataFactor / (24000 * Math.pow(1.090012, (3-getBuildingLevel())));
+                // System.out.println("MaxDe1 " + maxDecrement);
                 double lostUnits = 0;
                 double totalUnits = 0;
 
@@ -216,9 +228,10 @@ public class NewSimulator extends AbstractSimulator {
         }
         double moral = getMoral() / 100;
         double luck = ((100 + getLuck()) / 100);
-        result[ID_INFANTRY] = result[ID_INFANTRY] * moral * luck;
-        result[ID_CAVALRY] = result[ID_CAVALRY] * moral * luck;
-        result[ID_ARCHER] = result[ID_ARCHER] * moral * luck;
+        double believeFactor = (isAttackerBelieve()) ? 1.0 : 0.5;
+        result[ID_INFANTRY] = result[ID_INFANTRY] * moral * luck * believeFactor;
+        result[ID_CAVALRY] = result[ID_CAVALRY] * moral * luck * believeFactor;
+        result[ID_ARCHER] = result[ID_ARCHER] * moral * luck * believeFactor;
         return result;
     }
 
@@ -244,9 +257,10 @@ public class NewSimulator extends AbstractSimulator {
                 }
             }
 
-            result[ID_INFANTRY] += infantryMulti * unit.getDefense() * (double) element.getCount() * element.getTech() * itemFactor;
-            result[ID_CAVALRY] += cavalryMulti * unit.getDefenseCavalry() * (double) element.getCount() * element.getTech() * itemFactor;
-            result[ID_ARCHER] += archerMulti * unit.getDefenseArcher() * (double) element.getCount() * element.getTech() * itemFactor;
+            double believeFactor = (isDefenderBelieve()) ? 1.0 : 0.5;
+            result[ID_INFANTRY] += infantryMulti * unit.getDefense() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
+            result[ID_CAVALRY] += cavalryMulti * unit.getDefenseCavalry() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
+            result[ID_ARCHER] += archerMulti * unit.getDefenseArcher() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
         }
         /* System.out.println("BasicResult[");
         for (int j = 0; j < 3; j++) {
@@ -255,7 +269,6 @@ public class NewSimulator extends AbstractSimulator {
         System.out.println("]");*/
 
 
-        double luck = ((100 + getLuck()) / 100);
         double nightBonus = (isNightBonus()) ? 2 : 1;
         double[] basicDefense = new double[]{0.0, 0.0, 0.0};
         if (pUseBasicDefense) {

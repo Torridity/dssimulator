@@ -7,6 +7,7 @@ package de.tor.tribes.dssim.algo;
 import de.tor.tribes.dssim.types.AbstractUnitElement;
 import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
+import de.tor.tribes.dssim.util.ConfigManager;
 import java.util.Hashtable;
 
 /**
@@ -26,16 +27,18 @@ public abstract class AbstractSimulator {
     private int wallLevel = 0;
     private int buildingLevel = 0;
     private int farmLevel = 0;
+    private boolean attackerBelieve = false;
+    private boolean defenderBelieve = false;
 
-    public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel);
+    public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve);
 
-    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel) {
-        SimulatorResult result = calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel);
+    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve) {
+        SimulatorResult result = calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel, pAttackerBelieve, pDefenderBelieve);
         setFarmLevel(pFarmLevel);
         int cnt = 1;
         while (!result.isWin() && cnt <= 1000) {
             cnt++;
-            result = calculate(pOff, result.getSurvivingDef(), pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel(),pFarmLevel);
+            result = calculate(pOff, result.getSurvivingDef(), pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel(), pFarmLevel, pAttackerBelieve, pDefenderBelieve);
         }
         if (cnt > 1000) {
             result.setNukes(Integer.MAX_VALUE);
@@ -164,5 +167,43 @@ public abstract class AbstractSimulator {
      */
     public void setFarmLevel(int farmLevel) {
         this.farmLevel = farmLevel;
+    }
+
+    /**
+     * @return the attackerBelieve
+     */
+    public boolean isAttackerBelieve() {
+        if (ConfigManager.getSingleton().isChurch()) {
+            return attackerBelieve;
+        } else {
+            //if no church is used take care that the believe factor would be 1 later
+            return true;
+        }
+    }
+
+    /**
+     * @param attackerBelieve the attackerBelieve to set
+     */
+    public void setAttackerBelieve(boolean attackerBelieve) {
+        this.attackerBelieve = attackerBelieve;
+    }
+
+    /**
+     * @return the defenderBelieve
+     */
+    public boolean isDefenderBelieve() {
+        if (ConfigManager.getSingleton().isChurch()) {
+            return defenderBelieve;
+        } else {
+            //if no church is used take care that the believe factor would be 1 later
+            return true;
+        }
+    }
+
+    /**
+     * @param defenderBelieve the defenderBelieve to set
+     */
+    public void setDefenderBelieve(boolean defenderBelieve) {
+        this.defenderBelieve = defenderBelieve;
     }
 }
