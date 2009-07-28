@@ -509,27 +509,27 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jFarmLabel)
                                 .addGap(18, 18, 18)
-                                .addComponent(jMoralSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jFarmLevelSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(18, 18, 18)
+                                    .addComponent(jMoralSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGroup(jPanel1Layout.createSequentialGroup()
                                     .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGap(18, 18, 18)
                                     .addComponent(jLuckSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addComponent(jNightBonus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jFarmLabel)
-                                .addGap(18, 18, 18)
-                                .addComponent(jFarmLevelSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel28)
-                                    .addComponent(jLabel31))
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jWallSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addComponent(jNightBonus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel28)
+                                        .addComponent(jLabel31))
+                                    .addGap(18, 18, 18)
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jWallSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))))))
                     .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
                     .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
@@ -712,6 +712,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         boolean nightBonus = jNightBonus.isSelected();
         int wallLevel = (Integer) jWallSpinner.getValue();
         int cataTarget = (Integer) jCataTargetSpinner.getValue();
+        boolean cataFarm = false;
+        boolean cataChurch = false;
         double luck = (Double) jLuckSpinner.getValue();
         double moral = (Integer) jMoralSpinner.getValue();
         int farmLevel = 0;
@@ -724,7 +726,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             attackerBelieve = jAttackerBelieve.isSelected();
             defenderBelieve = jDefenderBelieve.isSelected();
         }
-        SimulatorResult result = sim.bunkerBuster(off, def, nightBonus, luck, moral, wallLevel, cataTarget, farmLevel, attackerBelieve, defenderBelieve);
+        SimulatorResult result = sim.bunkerBuster(off, def, nightBonus, luck, moral, wallLevel, cataTarget, farmLevel, attackerBelieve, defenderBelieve, cataChurch, cataFarm);
         int nukes = result.getNukes();
         if (nukes == Integer.MAX_VALUE) {
             jNukeInfo.setText("Dorf clean nach mehr als 1000 Angriffen (Abbruch)");
@@ -754,7 +756,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 ResultTableModel.getSingleton().reset();
                 SimulatorTableModel.getSingleton().setupModel();
                 ResultTableModel.getSingleton().setupModel();
-                if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
+                /*if ((ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) &&
+                        (ConfigManager.getSingleton().getFarmLimit() == 0)) {*/
+                if(UnitManager.getSingleton().getUnitByPlainName("archer") != null){
                     sim = new NewSimulator();
                     lastResult = null;
                 } else {
@@ -771,7 +775,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         }
     }//GEN-LAST:event_fireServerChangedEvent
 
@@ -787,6 +790,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
         Hashtable<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
         boolean nightBonus = jNightBonus.isSelected();
+        boolean cataFarm = false;
+        boolean cataChurch = false;
         int wallLevel = (Integer) jWallSpinner.getValue();
         int cataTarget = (Integer) jCataTargetSpinner.getValue();
         int farmLevel = 0;
@@ -821,9 +826,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         SimulatorResult result = null;
         if (sim instanceof NewSimulator) {
             //use items
-            result = ((NewSimulator) sim).calculate(off, def, offItem, defItems, nightBonus, luck, moral, wallLevel, cataTarget, farmLevel, attackerBelieve, defenderBelieve);
+            result = ((NewSimulator) sim).calculate(off, def, offItem, defItems, nightBonus, luck, moral, wallLevel, cataTarget, farmLevel, attackerBelieve, defenderBelieve, cataChurch, cataFarm);
         } else {
-            result = sim.calculate(off, def, nightBonus, luck, moral, wallLevel, cataTarget, farmLevel, attackerBelieve, defenderBelieve);
+            result = sim.calculate(off, def, nightBonus, luck, moral, wallLevel, cataTarget, farmLevel, attackerBelieve, defenderBelieve, cataChurch, cataFarm);
         }
         jNukeInfo.setText("(Einzelangriff)");
         buildResultTable(result);

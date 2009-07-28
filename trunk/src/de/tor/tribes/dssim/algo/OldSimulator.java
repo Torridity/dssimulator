@@ -13,14 +13,14 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 /**
- *
+ *@TODO handle NAN values for spy only attacks
  * @author Charon
  */
 public class OldSimulator extends AbstractSimulator {
 
-    boolean DEBUG = false;
+    boolean DEBUG = true;
 
-    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve) {
+    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm) {
         setOff(pOff);
         setDef(pDef);
         setMoral(pMoral);
@@ -31,6 +31,8 @@ public class OldSimulator extends AbstractSimulator {
         setFarmLevel(pFarmLevel);
         setAttackerBelieve(pAttackerBelieve);
         setDefenderBelieve(pDefenderBelieve);
+        setCataFarm(pCataFarm);
+        setCataChurch(pCataChurch);
         SimulatorResult result = new SimulatorResult(getOff(), getDef());
         double[] offStrengths = calculateOffStrengthts();
         double[] defStrengths = calculateDefStrengths();
@@ -38,12 +40,11 @@ public class OldSimulator extends AbstractSimulator {
         double infantryRatio = offStrengths[ID_INFANTRY] / (offStrengths[ID_INFANTRY] + offStrengths[ID_CAVALRY]);
         double cavaleryRatio = 1 - infantryRatio;
         double defStrength = infantryRatio * defStrengths[ID_INFANTRY] + cavaleryRatio * defStrengths[ID_CAVALRY];
-
         if (ConfigManager.getSingleton().getFarmLimit() != 0) {
             double limit = getFarmLevel() * ConfigManager.getSingleton().getFarmLimit();
             double defFarmUsage = calculateDefFarmUsage();
             double factor = limit / defFarmUsage;
-            if (factor > 1.0) {
+            if (factor > 1.0) { 
                 factor = 1.0;
             }
             defStrength = factor * defStrength;
@@ -53,9 +54,9 @@ public class OldSimulator extends AbstractSimulator {
         double ramCount = 0;
         double ramAttPoint = 0;
         double wallAtFight = getWallLevel();
-        if (rams != null) {
+        if (rams != null && rams.getCount() != 0) {
             ramCount = rams.getCount();
-            double wallReduction = ramCount / (4 * Math.pow(1.090012, getWallLevel()));
+            double wallReduction = ramCount / (4 * Math.pow(1.09, getWallLevel()));
             if (wallReduction > (double) getWallLevel() / 2.0) {
                 wallReduction = (double) getWallLevel() / 2.0;
             }
@@ -112,7 +113,8 @@ public class OldSimulator extends AbstractSimulator {
         println("DefStrength " + defStrength);
 
         double lossPowerValue = 1.5;
-        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_TECH_10) {
+        if ((ConfigManager.getSingleton().getTech() == ConfigManager.ID_TECH_10) ||
+                (ConfigManager.getSingleton().getFarmLimit() != 0)) {
             lossPowerValue = 1.6;
         }
 
@@ -123,12 +125,12 @@ public class OldSimulator extends AbstractSimulator {
         double wallAfter = getWallLevel();
         if (lossRatioOff > 1) {
             //attack losses
-            double wallDemolish = Math.pow((offStrength / defStrength), 1.5) * (ramAttPoint * ramCount) / (8 * Math.pow(1.090012, getWallLevel()));
+            double wallDemolish = Math.pow((offStrength / defStrength), lossPowerValue) * (ramAttPoint * ramCount) / (8 * Math.pow(1.09, getWallLevel()));
             println("Demo " + wallDemolish);
             wallAfter = Math.round(getWallLevel() - wallDemolish);
         } else {
             //attacker wins
-            double wallDemolish = (2 - Math.pow((defStrength / offStrength), 1.5)) * (ramAttPoint * ramCount) / (8 * Math.pow(1.090012, getWallLevel()));
+            double wallDemolish = (2 - Math.pow((defStrength / offStrength), lossPowerValue)) * (ramAttPoint * ramCount) / (8 * Math.pow(1.09, getWallLevel()));
             println("Demo " + wallDemolish);
             wallAfter = Math.round(getWallLevel() - wallDemolish);
         }
@@ -136,13 +138,12 @@ public class OldSimulator extends AbstractSimulator {
         if (cata != null && cata.getCount() != 0) {
             if (lossRatioOff > 1) {
                 //attack losses
-                double buildingDemolish = Math.pow((offStrength / defStrength), 1.5) * (cataAttPoint * cata.getCount()) / (600 * Math.pow(1.090012, getBuildingLevel()));
+                double buildingDemolish = Math.pow((offStrength / defStrength), lossPowerValue) * (cataAttPoint * cata.getCount()) / (600 * Math.pow(1.09, getBuildingLevel()));
                 println("DemoBuild " + buildingDemolish);
                 buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
             } else {
                 //attacker wins
-                double buildingDemolish = (2 - Math.pow((defStrength / offStrength), 1.5)) * (cataAttPoint * cata.getCount()) / (600 * Math.pow(1.090012, (getBuildingLevel())));
-                //double buildingDemolish = (2 - Math.pow((defStrength / offStrength), 1.5)) * (cataAttPoint * cata.getCount()) / (1800 * Math.pow(1.090012, (getBuildingLevel())));
+                double buildingDemolish = (2 - Math.pow((defStrength / offStrength), lossPowerValue)) * (cataAttPoint * cata.getCount()) / (600 * Math.pow(1.09, (getBuildingLevel())));
                 println("DemoBuild " + buildingDemolish);
                 buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
             }
@@ -191,7 +192,7 @@ public class OldSimulator extends AbstractSimulator {
     }
 
     private double[] calculateOffStrengthts() {
-        double[] result = new double[2];
+        double[] result = new double[]{0.0, 0.0};
         Enumeration<UnitHolder> units = getOff().keys();
         while (units.hasMoreElements()) {
             UnitHolder unit = units.nextElement();
@@ -206,13 +207,15 @@ public class OldSimulator extends AbstractSimulator {
         //integrate moral and luck
         double moral = getMoral() / 100;
         double luck = ((100 + getLuck()) / 100);
+        System.out.println("AS  " + result[ID_INFANTRY]);
+        System.out.println("AS2  " + result[ID_CAVALRY]);
         result[ID_INFANTRY] = result[ID_INFANTRY] * moral * luck;
         result[ID_CAVALRY] = result[ID_CAVALRY] * moral * luck;
         return result;
     }
 
     private double[] calculateDefStrengths() {
-        double[] result = new double[2];
+        double[] result = new double[]{0.0, 0.0};
         Enumeration<UnitHolder> units = getDef().keys();
         while (units.hasMoreElements()) {
             UnitHolder unit = units.nextElement();
@@ -221,8 +224,8 @@ public class OldSimulator extends AbstractSimulator {
             result[ID_CAVALRY] += unitElement.getCount() * unit.getDefenseCavalry() * getTechFactor(unitElement.getTech());
         }
 
-        result[ID_INFANTRY] = result[ID_INFANTRY] * ((isNightBonus()) ? 2 : 1);
-        result[ID_CAVALRY] = result[ID_CAVALRY] * ((isNightBonus()) ? 2 : 1);
+        result[ID_INFANTRY] = result[ID_INFANTRY] * ((isNightBonus()) ? 2.0 : 1.0);
+        result[ID_CAVALRY] = result[ID_CAVALRY] * ((isNightBonus()) ? 2.0 : 1.0);
         return result;
     }
 

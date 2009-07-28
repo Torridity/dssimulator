@@ -29,16 +29,20 @@ public abstract class AbstractSimulator {
     private int farmLevel = 0;
     private boolean attackerBelieve = false;
     private boolean defenderBelieve = false;
+    private boolean cataChurch = false;
+    private boolean cataFarm = false;
 
-    public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve);
+    public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm);
 
-    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve) {
-        SimulatorResult result = calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel, pAttackerBelieve, pDefenderBelieve);
+    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm) {
+        SimulatorResult result = calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm);
         setFarmLevel(pFarmLevel);
+        setCataChurch(pCataChurch);
+        setCataFarm(pCataFarm);
         int cnt = 1;
         while (!result.isWin() && cnt <= 1000) {
             cnt++;
-            result = calculate(pOff, result.getSurvivingDef(), pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel(), pFarmLevel, pAttackerBelieve, pDefenderBelieve);
+            result = calculate(pOff, result.getSurvivingDef(), pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel(), pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm);
         }
         if (cnt > 1000) {
             result.setNukes(Integer.MAX_VALUE);
@@ -205,5 +209,33 @@ public abstract class AbstractSimulator {
      */
     public void setDefenderBelieve(boolean defenderBelieve) {
         this.defenderBelieve = defenderBelieve;
+    }
+
+    /**
+     * @return the cataChurch
+     */
+    public boolean isCataChurch() {
+        return cataChurch;
+    }
+
+    /**
+     * @param cataChurch the cataChurch to set
+     */
+    public void setCataChurch(boolean cataChurch) {
+        this.cataChurch = cataChurch;
+    }
+
+    /**
+     * @return the cataFarm
+     */
+    public boolean isCataFarm() {
+        return cataFarm;
+    }
+
+    /**
+     * @param cataFarm the cataFarm to set
+     */
+    public void setCataFarm(boolean cataFarm) {
+        this.cataFarm = cataFarm;
     }
 }
