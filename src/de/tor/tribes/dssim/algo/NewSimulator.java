@@ -26,10 +26,10 @@ public class NewSimulator extends AbstractSimulator {
     private KnightItem offItem = null;
     private List<KnightItem> defItems = null;
 
-    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve) {
+    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm) {
         offItem = pOffItem;
         defItems = pDefItems;
-        return calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel, pAttackerBelieve, pDefenderBelieve);
+        return calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm);
     }
 
     @Override
@@ -41,7 +41,9 @@ public class NewSimulator extends AbstractSimulator {
             int pBuildingLevel,
             int pFarmLevel,
             boolean pAttackerBelieve,
-            boolean pDefenderBelieve) {
+            boolean pDefenderBelieve,
+            boolean pCataChurch,
+            boolean pCataFarm) {
         setOff(pOff);
         setDef(pDef);
         setMoral(pMoral);
@@ -52,7 +54,8 @@ public class NewSimulator extends AbstractSimulator {
         setFarmLevel(pFarmLevel);
         setAttackerBelieve(pAttackerBelieve);
         setDefenderBelieve(pDefenderBelieve);
-
+        setCataChurch(pCataChurch);
+        setCataFarm(pCataFarm);
         if (offItem == null) {
             offItem = KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM);
         }
@@ -72,7 +75,7 @@ public class NewSimulator extends AbstractSimulator {
             ramCount /= 2;
         }
 
-        int wallAtFight = getWallLevel() - (int) Math.round((ramCount * ramFactor) / (4 * Math.pow(1.090012, getWallLevel())));
+        int wallAtFight = getWallLevel() - (int) Math.round((ramCount * ramFactor) / (4 * Math.pow(1.09, getWallLevel())));
         double additionalDamageFactor = 1.0;
         if (ConfigManager.getSingleton().getKnightNewItems() == 0 || ramFactor == 1.0) {
             additionalDamageFactor = 1.0;
@@ -135,7 +138,7 @@ public class NewSimulator extends AbstractSimulator {
         if (result.isWin() && ramCount > 0) {
             //calculate wall after fight
 
-            double maxDecrement = ramCount * 2 * ramFactor / (4 * Math.pow(1.090012, getWallLevel()));
+            double maxDecrement = ramCount * 2 * ramFactor / (4 * Math.pow(1.09, getWallLevel()));
             //double maxDecrement = ramCount * 2 / (4 * Math.pow(1.090012, getWallLevel()));
             double lostUnits = 0;
             double totalUnits = 0;
@@ -160,11 +163,12 @@ public class NewSimulator extends AbstractSimulator {
                 lostUnits += getDef().get(unit).getCount() - result.getSurvivingDef().get(unit).getCount();
             }
             double ratio = lostUnits / totalUnits;
-            int wallDecrement = (int) Math.round((ramCount * ratio) * 2 * ramFactor / (8 * Math.pow(1.090012, getWallLevel())));
+            int wallDecrement = (int) Math.round((ramCount * ratio) * 2 * ramFactor / (8 * Math.pow(1.09, getWallLevel())));
             result.setWallLevel((getWallLevel() - wallDecrement < 0) ? 0 : getWallLevel() - wallDecrement);
         }
         // </editor-fold>
 
+        // <editor-fold defaultstate="collapsed" desc="Building calculation">
         //demolish building
         double buildingAfter = getBuildingLevel();
         AbstractUnitElement cata = getOff().get(UnitManager.getSingleton().getUnitByPlainName("catapult"));
@@ -186,16 +190,22 @@ public class NewSimulator extends AbstractSimulator {
                     lostUnits += getDef().get(unit).getCount() - result.getSurvivingDef().get(unit).getCount();
                 }
                 double ratio = lostUnits / totalUnits;
-                int buildingDecrement = (int) Math.round(((cataCount * ratio) * cata.getUnit().getAttack() * cataFactor) / (600 * Math.pow(1.090012, getBuildingLevel())));
+                int buildingDecrement = 0;
+                /* if (isCataChurch() && ConfigManager.getSingleton().isChurch()) {
+                buildingDecrement = getMaxChurchDestruction((int) Math.round(cataCount * ratio / 2));
+                if (buildingDecrement == -1) {
+                //church level larger than 3, so use normal calculation
+                buildingDecrement = (int) Math.round((((cataCount * ratio) * cata.getUnit().getAttack() * cataFactor) / (600 * Math.pow(1.09, getBuildingLevel()))));
+                }
+                } else {*/
+                buildingDecrement = (int) Math.round(((cataCount * cata.getUnit().getAttack() * cataFactor) / (600 * Math.pow(1.09, getBuildingLevel()))) * ratio);
+                // }
                 buildingAfter = getBuildingLevel() - buildingDecrement;
 
-                //@TODO: implement cata -> church (cataCount/ratio/2 must be equal the min number of needed catas per level
+            //@TODO: implement cata -> church (cataCount/ratio/2 must be equal the min number of needed catas per level
 
             } else {
                 //attacker wins
-                double maxDecrement = cataCount * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.090012, getBuildingLevel()));
-                //double maxDecrement = cata.getCount() * cata.getUnit().getAttack() * cataFactor / (24000 * Math.pow(1.090012, (3-getBuildingLevel())));
-                // System.out.println("MaxDe1 " + maxDecrement);
                 double lostUnits = 0;
                 double totalUnits = 0;
 
@@ -205,26 +215,85 @@ public class NewSimulator extends AbstractSimulator {
                 }
 
                 double ratio = lostUnits / totalUnits;
+                double maxDecrement = 0.0;
+                /* if (isCataChurch() && ConfigManager.getSingleton().isChurch()) {
+                maxDecrement = getMaxChurchDestruction((int) Math.round(cataCount));
+                if (maxDecrement == -1) {
+                //church level larger than 3, so use normal calculation
+                maxDecrement = cataCount * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.09, getBuildingLevel()));
+                }
+                } else {*/
+                maxDecrement = cataCount * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.09, getBuildingLevel()));
+                //  }
                 int buildingDecrement = (int) Math.round(-1 * maxDecrement / 2 * ratio + maxDecrement);
                 buildingAfter = getBuildingLevel() - buildingDecrement;
-                //@TODO: implement cata -> church (max. dec depending on cata count -> do normal actual destr. calculation afterwards
+            //@TODO: implement cata -> church (max. dec depending on cata count -> do normal actual destr. calculation afterwards
             }
             result.setBuildingLevel((buildingAfter <= 0) ? 0 : (int) buildingAfter);
         } else {
             //no demolishion
             result.setBuildingLevel(getBuildingLevel());
         }
+        // </editor-fold>
         return result;
+    }
+
+    private int getMaxChurchDestruction(int pCataCount) {
+        if (pCataCount < 120) {
+            //nothing to do
+            return 0;
+        }
+        switch (getBuildingLevel()) {
+            case 1: {
+                if (pCataCount >= 400) {
+                    //need at lease 400 cata to destroy church level 1
+                    return 1;
+                } else {
+                    //less than 400 catas
+                    return 0;
+                }
+            }
+            case 2: {
+                if (pCataCount < 167) {
+                    //to less catas
+                    return 0;
+                }
+                if ((pCataCount >= 167) && (pCataCount < 500)) {
+                    //max. 1 level
+                    return 1;
+                } else if (pCataCount >= 500) {
+                    //complete church can be destroyed
+                    return 2;
+                }
+            }
+            case 3: {
+                if ((pCataCount >= 120) && (pCataCount < 360)) {
+                    //max. 1 level can be destroyed
+                    return 1;
+                } else if ((pCataCount >= 360) && (pCataCount < 600)) {
+                    //max. 2 levels can be destroyed
+                    return 2;
+                } else if (pCataCount >= 600) {
+                    //church can be destroyed
+                    return 3;
+                }
+            }
+        }
+        return -1;
     }
 
     private double[] calculateOffStrengths(Hashtable<UnitHolder, AbstractUnitElement> pTable) {
         double[] result = new double[3];
         Enumeration<UnitHolder> units = pTable.keys();
+        double item = 1.0;
         while (units.hasMoreElements()) {
             UnitHolder unit = units.nextElement();
             AbstractUnitElement element = pTable.get(unit);
             //calculate knight item factor
             double itemFactor = (offItem.affectsUnit(unit)) ? offItem.getOffFactor() : 1.0;
+            if (itemFactor != 1.0) {
+                item = itemFactor;
+            }
             //add strength to all appropriate array elements (e.g. marcher is cavalry and archer)
             if (isInfantry(unit) && !isArcher(unit)) {
                 result[ID_INFANTRY] += unit.getAttack() * (double) element.getCount() * element.getTech() * itemFactor;
@@ -239,6 +308,16 @@ public class NewSimulator extends AbstractSimulator {
         double moral = getMoral() / 100;
         double luck = ((100 + getLuck()) / 100);
         double believeFactor = (isAttackerBelieve()) ? 1.0 : 0.5;
+
+        // <editor-fold defaultstate="collapsed" desc="Debug Output">
+        /*
+        System.out.println("Item(Off): " + item);
+        System.out.println("Moral(Off): " + moral);
+        System.out.println("Luck(Off): " + luck);
+        System.out.println("Believe(Off): " + believeFactor);
+         */
+        // </editor-fold>
+
         result[ID_INFANTRY] = result[ID_INFANTRY] * moral * luck * believeFactor;
         result[ID_CAVALRY] = result[ID_CAVALRY] * moral * luck * believeFactor;
         result[ID_ARCHER] = result[ID_ARCHER] * moral * luck * believeFactor;
@@ -268,6 +347,12 @@ public class NewSimulator extends AbstractSimulator {
             }
 
             double believeFactor = (isDefenderBelieve()) ? 1.0 : 0.5;
+            // <editor-fold defaultstate="collapsed" desc="Debug output">
+            /*
+            System.out.println("Item(Def): " + itemFactor);
+            System.out.println("Believe(Def): " + believeFactor);
+            */
+            // </editor-fold>
             result[ID_INFANTRY] += infantryMulti * unit.getDefense() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
             result[ID_CAVALRY] += cavalryMulti * unit.getDefenseCavalry() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
             result[ID_ARCHER] += archerMulti * unit.getDefenseArcher() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
@@ -307,6 +392,10 @@ public class NewSimulator extends AbstractSimulator {
 
     private double[] calulateLosses(double[] pOffStrengths, double[] pDeffStrengths, int pType) {
         double[] losses = new double[3];
+        double lossFactor = 1.5;
+        if(ConfigManager.getSingleton().getFarmLimit() != 0){
+            lossFactor = 1.6;
+        }
         if (pType == ID_OFF) {
             //calculate losses
             for (int i = 0; i <= ID_ARCHER; i++) {
@@ -315,7 +404,7 @@ public class NewSimulator extends AbstractSimulator {
                     losses[i] = 0;
                 } else {
                     if (pOffStrengths[i] > pDeffStrengths[i]) {
-                        losses[i] = Math.pow(pDeffStrengths[i] / pOffStrengths[i], 1.5);
+                        losses[i] = Math.pow(pDeffStrengths[i] / pOffStrengths[i], lossFactor);
                     } else {
                         //off completely list
                         losses[i] = 1;
@@ -337,7 +426,7 @@ public class NewSimulator extends AbstractSimulator {
                     losses[i] = 0;
                 } else {
                     if (pDeffStrengths[i] > pOffStrengths[i]) {
-                        losses[i] = Math.pow(pOffStrengths[i] / pDeffStrengths[i], 1.5);
+                        losses[i] = Math.pow(pOffStrengths[i] / pDeffStrengths[i], lossFactor);
                     } else {
                         //off completely list
                         losses[i] = 1;

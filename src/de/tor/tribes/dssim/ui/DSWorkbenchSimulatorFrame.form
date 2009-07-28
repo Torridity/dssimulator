@@ -160,32 +160,32 @@
                           <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Group type="102" attributes="0">
-                                  <Component id="jLabel29" min="-2" pref="16" max="-2" attributes="1"/>
+                                  <Component id="jFarmLabel" min="-2" max="-2" attributes="1"/>
                                   <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
-                                  <Component id="jMoralSpinner" min="-2" max="-2" attributes="1"/>
+                                  <Component id="jFarmLevelSpinner" min="-2" pref="60" max="-2" attributes="1"/>
                               </Group>
-                              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                              <Group type="103" alignment="0" groupAlignment="0" max="-2" attributes="0">
+                                  <Group type="102" attributes="0">
+                                      <Component id="jLabel29" min="-2" pref="16" max="-2" attributes="1"/>
+                                      <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
+                                      <Component id="jMoralSpinner" min="-2" max="-2" attributes="1"/>
+                                  </Group>
                                   <Group type="102" alignment="0" attributes="0">
                                       <Component id="jLabel30" min="-2" pref="16" max="-2" attributes="1"/>
                                       <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
                                       <Component id="jLuckSpinner" max="32767" attributes="1"/>
                                   </Group>
                                   <Component id="jNightBonus" alignment="0" max="32767" attributes="1"/>
-                              </Group>
-                              <Group type="102" attributes="0">
-                                  <Component id="jFarmLabel" min="-2" max="-2" attributes="1"/>
-                                  <EmptySpace type="separate" max="-2" attributes="0"/>
-                                  <Component id="jFarmLevelSpinner" min="-2" pref="60" max="-2" attributes="1"/>
-                              </Group>
-                              <Group type="102" attributes="0">
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="jLabel28" alignment="0" min="-2" max="-2" attributes="1"/>
-                                      <Component id="jLabel31" min="-2" max="-2" attributes="1"/>
-                                  </Group>
-                                  <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="jWallSpinner" alignment="0" min="-2" max="-2" attributes="1"/>
-                                      <Component id="jCataTargetSpinner" alignment="1" min="-2" pref="60" max="-2" attributes="1"/>
+                                  <Group type="102" attributes="0">
+                                      <Group type="103" groupAlignment="0" attributes="0">
+                                          <Component id="jLabel28" alignment="0" min="-2" max="-2" attributes="1"/>
+                                          <Component id="jLabel31" min="-2" max="-2" attributes="1"/>
+                                      </Group>
+                                      <EmptySpace type="separate" min="-2" max="-2" attributes="0"/>
+                                      <Group type="103" groupAlignment="0" attributes="0">
+                                          <Component id="jWallSpinner" alignment="0" min="-2" max="-2" attributes="1"/>
+                                          <Component id="jCataTargetSpinner" alignment="1" min="-2" pref="60" max="-2" attributes="1"/>
+                                      </Group>
                                   </Group>
                               </Group>
                           </Group>
@@ -212,7 +212,7 @@
                               <Component id="jLabel31" alignment="0" min="-2" pref="16" max="-2" attributes="1"/>
                               <Component id="jCataTargetSpinner" alignment="0" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace max="-2" attributes="0"/>
+                          <EmptySpace min="-2" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="jFarmLabel" min="-2" pref="16" max="-2" attributes="1"/>
                               <Component id="jFarmLevelSpinner" min="-2" max="-2" attributes="0"/>
