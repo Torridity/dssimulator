@@ -67,7 +67,7 @@ public class NewSimulator extends AbstractSimulator {
         }
         double ramFactor = (offItem.affectsUnit(ramElement.getUnit())) ? 2.0 : 1.0;
 
-        if(!isAttackerBelieve()){
+        if (!isAttackerBelieve()) {
             //if attacker does not believe, ram fight at half power
             ramCount /= 2;
         }
@@ -76,7 +76,7 @@ public class NewSimulator extends AbstractSimulator {
         double additionalDamageFactor = 1.0;
         if (ConfigManager.getSingleton().getKnightNewItems() == 0 || ramFactor == 1.0) {
             additionalDamageFactor = 1.0;
-            } else {
+        } else {
             additionalDamageFactor = 2.0;
         }
         if (wallAtFight < (int) Math.round((double) getWallLevel() / (2.0 * additionalDamageFactor))) {
@@ -171,6 +171,12 @@ public class NewSimulator extends AbstractSimulator {
         if (cata != null && cata.getCount() != 0) {
             //get additional cata factor for special item
             double cataFactor = (offItem.affectsUnit(cata.getUnit())) ? 2.0 : 1.0;
+            double cataCount = cata.getCount();
+            if (!isAttackerBelieve()) {
+                //if attacker does not believe, ram fight at half power
+                cataCount /= 2;
+            }
+
             if (!result.isWin()) {
                 //attack lost
                 double lostUnits = 0;
@@ -180,11 +186,14 @@ public class NewSimulator extends AbstractSimulator {
                     lostUnits += getDef().get(unit).getCount() - result.getSurvivingDef().get(unit).getCount();
                 }
                 double ratio = lostUnits / totalUnits;
-                int buildingDecrement = (int) Math.round(((cata.getCount() * ratio) * cata.getUnit().getAttack() * cataFactor) / (600 * Math.pow(1.090012, getBuildingLevel())));
+                int buildingDecrement = (int) Math.round(((cataCount * ratio) * cata.getUnit().getAttack() * cataFactor) / (600 * Math.pow(1.090012, getBuildingLevel())));
                 buildingAfter = getBuildingLevel() - buildingDecrement;
+
+                //@TODO: implement cata -> church (cataCount/ratio/2 must be equal the min number of needed catas per level
+
             } else {
                 //attacker wins
-                double maxDecrement = cata.getCount() * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.090012, getBuildingLevel()));
+                double maxDecrement = cataCount * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.090012, getBuildingLevel()));
                 //double maxDecrement = cata.getCount() * cata.getUnit().getAttack() * cataFactor / (24000 * Math.pow(1.090012, (3-getBuildingLevel())));
                 // System.out.println("MaxDe1 " + maxDecrement);
                 double lostUnits = 0;
@@ -198,6 +207,7 @@ public class NewSimulator extends AbstractSimulator {
                 double ratio = lostUnits / totalUnits;
                 int buildingDecrement = (int) Math.round(-1 * maxDecrement / 2 * ratio + maxDecrement);
                 buildingAfter = getBuildingLevel() - buildingDecrement;
+                //@TODO: implement cata -> church (max. dec depending on cata count -> do normal actual destr. calculation afterwards
             }
             result.setBuildingLevel((buildingAfter <= 0) ? 0 : (int) buildingAfter);
         } else {
