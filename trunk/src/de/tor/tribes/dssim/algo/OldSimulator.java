@@ -249,7 +249,7 @@ public class OldSimulator extends AbstractSimulator {
             }
         } else {
             //use 10 level tech factor
-            return Math.pow(1.04605, (pLevel - 1));
+            return Math.pow(1.04608, (pLevel - 1));
         }
     }
 }

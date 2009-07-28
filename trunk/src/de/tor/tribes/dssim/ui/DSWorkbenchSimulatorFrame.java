@@ -780,7 +780,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_fireBelieveChangedEvent
 
     private void fireAlwaysOnTopChangeEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireAlwaysOnTopChangeEvent
-setAlwaysOnTop(jAlwaysOnTopButton.isSelected());
+        setAlwaysOnTop(jAlwaysOnTopButton.isSelected());
     }//GEN-LAST:event_fireAlwaysOnTopChangeEvent
 
     private void fireCalculateEvent() {
@@ -869,12 +869,12 @@ setAlwaysOnTop(jAlwaysOnTopButton.isSelected());
             attackerLosses.add(offElement.getCount() - pResult.getSurvivingOff().get(u).getCount());
             defenderLosses.add(defElement.getCount() - pResult.getSurvivingDef().get(u).getCount());
 
-            /*            //set units of type lost
-            attackerLosses.add(((pOffDecrement >= 1) ? offElement.getCount() : (int) Math.round(pOffDecrement * (double) offElement.getCount())));
-            defenderLosses.add(((pDefDecrement >= 1) ? defElement.getCount() : (int) Math.round(pDefDecrement * (double) defElement.getCount())));
-            //set units of type survived
-            attackerSurvivors.add(((pOffDecrement >= 1) ? 0 : offElement.getCount() - (int) Math.round(pOffDecrement * (double) offElement.getCount())));
-            defenderSurvivors.add(((pDefDecrement >= 1) ? 0 : defElement.getCount() - (int) Math.round(pDefDecrement * (double) defElement.getCount())));*/
+        /*            //set units of type lost
+        attackerLosses.add(((pOffDecrement >= 1) ? offElement.getCount() : (int) Math.round(pOffDecrement * (double) offElement.getCount())));
+        defenderLosses.add(((pDefDecrement >= 1) ? defElement.getCount() : (int) Math.round(pDefDecrement * (double) defElement.getCount())));
+        //set units of type survived
+        attackerSurvivors.add(((pOffDecrement >= 1) ? 0 : offElement.getCount() - (int) Math.round(pOffDecrement * (double) offElement.getCount())));
+        defenderSurvivors.add(((pDefDecrement >= 1) ? 0 : defElement.getCount() - (int) Math.round(pDefDecrement * (double) defElement.getCount())));*/
         }
 
         jResultTable.invalidate();
@@ -966,31 +966,31 @@ setAlwaysOnTop(jAlwaysOnTopButton.isSelected());
 
 
 
-        // System.setProperty("http.proxyHost", "proxy.fzk.de");
-        //  System.setProperty("http.proxyPort", "8000");
+    // System.setProperty("http.proxyHost", "proxy.fzk.de");
+    //  System.setProperty("http.proxyPort", "8000");
 
-        /*   for (int i = 3; i <= 48; i++) {
-        System.out.println("Getting units from server de" + i);
-        try {
+    /*   for (int i = 3; i <= 48; i++) {
+    System.out.println("Getting units from server de" + i);
+    try {
 
-        String config = "interface.php?func=get_config";
-        String unit = "interface.php?func=get_unit_info";
-        String url = "http://de" + i + ".die-staemme.de/" + config;
-        URLConnection ucon = new URL(url).openConnection();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(ucon.getInputStream()));
-        FileWriter fout = new FileWriter("./src/res/servers/config_de" + i + ".xml");
-        String line = null;
-        while ((line = reader.readLine()) != null) {
-        fout.write(line + "\n");
-        }
-        fout.flush();
-        fout.close();
-        //"/interface.php?func=get_config"
-        } catch (Exception e) {
-        e.printStackTrace();
-        }
+    String config = "interface.php?func=get_config";
+    String unit = "interface.php?func=get_unit_info";
+    String url = "http://de" + i + ".die-staemme.de/" + config;
+    URLConnection ucon = new URL(url).openConnection();
+    BufferedReader reader = new BufferedReader(new InputStreamReader(ucon.getInputStream()));
+    FileWriter fout = new FileWriter("./src/res/servers/config_de" + i + ".xml");
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+    fout.write(line + "\n");
+    }
+    fout.flush();
+    fout.close();
+    //"/interface.php?func=get_config"
+    } catch (Exception e) {
+    e.printStackTrace();
+    }
 
-        }*/
+    }*/
 
 
     }
