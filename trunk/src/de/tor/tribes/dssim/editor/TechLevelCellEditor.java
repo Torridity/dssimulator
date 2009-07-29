@@ -30,11 +30,11 @@ public class TechLevelCellEditor extends AbstractCellEditor implements TableCell
 
     @Override
     public Object getCellEditorValue() {
-        int index = mEditor.getSelectedIndex() + 1;
-        if (index == 0) {
-            return (double) 1;
+        double index = mEditor.getSelectedIndex() + 1;
+        if (index == 0.0) {
+            return (Double) 1.0;
         }
-        return (double) index;
+        return (Double) index;
     }
 
     @Override

@@ -73,6 +73,10 @@ public abstract class AbstractSimulator {
         return (pUnit.getPlainName().equals("spy"));
     }
 
+    public boolean isKnight(UnitHolder pUnit) {
+        return (pUnit.getPlainName().equals("knight"));
+    }
+
     public void setOff(Hashtable<UnitHolder, AbstractUnitElement> pOff) {
         off = pOff;
     }

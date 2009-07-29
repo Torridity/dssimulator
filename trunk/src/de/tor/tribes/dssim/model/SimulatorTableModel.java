@@ -113,7 +113,15 @@ public class SimulatorTableModel extends DefaultTableModel {
                 Integer count = (Integer) getValueAt(i, 5);
                 //add element if cout larger than 0
                 UnitHolder unit = (UnitHolder) UnitManager.getSingleton().getUnitByPlainName((String) getValueAt(i, 1));
-                int tech = (int) Math.rint((Double) getValueAt(i, 6));
+                int tech = 1;
+                Object val = getValueAt(i, 6);
+
+                if (val instanceof Double) {
+                    tech = (int) Math.rint((Double) getValueAt(i, 6));
+                } else {
+                    tech = (Integer) getValueAt(i, 6);
+                }
+
                 AbstractUnitElement element = new AbstractUnitElement(unit, count, tech);
                 result.put(unit, element);
             }//end of all rows

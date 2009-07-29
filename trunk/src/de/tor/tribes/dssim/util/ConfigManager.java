@@ -27,6 +27,7 @@ public class ConfigManager {
     private int knightType = 0;
     private int knightNewItems = 0;
     private int church = 0;
+    private int spyType = 10;
 
     public static synchronized ConfigManager getSingleton() {
         if (SINGLETON == null) {
@@ -35,7 +36,7 @@ public class ConfigManager {
         return SINGLETON;
     }
 
-    public void parseConfig(String pServerID) {
+    public void parseConfig(String pServerID) throws Exception {
         try {
             Document d = JaxenUtils.getDocument(UnitManager.class.getResourceAsStream("/res/servers/config_" + pServerID + ".xml"));
             setTech(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/tech")));
@@ -43,8 +44,9 @@ public class ConfigManager {
             setKnightType(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight")));
             setKnightNewItems(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight_new_items")));
             setChurch(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/church")));
+            setSpyType(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/spy")));
         } catch (Exception outer) {
-            outer.printStackTrace();
+            throw new Exception("Failed to load config for server '" + pServerID + "'", outer);
         }
     }
 
@@ -60,10 +62,6 @@ public class ConfigManager {
      */
     public void setTech(int tech) {
         this.tech = tech;
-    }
-
-    public static void main(String[] args) {
-        ConfigManager.getSingleton().parseConfig("de4");
     }
 
     /**
@@ -120,5 +118,19 @@ public class ConfigManager {
      */
     public void setChurch(int church) {
         this.church = church;
+    }
+
+    /**
+     * @return the spyType
+     */
+    public int getSpyType() {
+        return spyType;
+    }
+
+    /**
+     * @param spyType the spyType to set
+     */
+    public void setSpyType(int spyType) {
+        this.spyType = spyType;
     }
 }

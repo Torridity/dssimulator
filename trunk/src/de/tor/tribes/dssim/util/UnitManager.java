@@ -27,7 +27,7 @@ public class UnitManager {
     }
 
     /**Parse the list of units*/
-    public void parseUnits(String pServerID) {
+    public void parseUnits(String pServerID) throws Exception{
         units.clear();
         try {
             Document d = JaxenUtils.getDocument(UnitManager.class.getResourceAsStream("/res/servers/units_" + pServerID + ".xml"));
@@ -40,7 +40,7 @@ public class UnitManager {
                 }
             }
         } catch (Exception outer) {
-            outer.printStackTrace();
+            throw new Exception("Failed to load units for server '" + pServerID + "'", outer);
         }
     }
 

@@ -39,6 +39,7 @@ import java.util.List;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
@@ -51,11 +52,19 @@ import javax.swing.table.DefaultTableCellRenderer;
  */
 public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
+    private static DSWorkbenchSimulatorFrame SINGLETON = null;
     private AbstractSimulator sim = null;
     private SimulatorResult lastResult = null;
 
+    public static synchronized DSWorkbenchSimulatorFrame getSingleton() {
+        if (SINGLETON == null) {
+            SINGLETON = new DSWorkbenchSimulatorFrame();
+        }
+        return SINGLETON;
+    }
+
     /** Creates new form DSWorkbenchSimulatorFrame */
-    public DSWorkbenchSimulatorFrame() {
+    DSWorkbenchSimulatorFrame() {
         initComponents();
         setTitle("A*Star - Attack Simulator for Tribal Wars v" + Constants.VERSION + Constants.VERSION_ADDITION);
         Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
@@ -73,9 +82,10 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         try {
             ImageManager.loadUnitIcons();
         } catch (Exception e) {
+            fireGlobalErrorEvent("Einheitensymbole konnten nicht geladen werden.");
         }
         buildServerList();
-        jServerList.setSelectedItem("de36");
+        jServerList.setSelectedIndex(0);
         fireServerChangedEvent(null);
     }
 
@@ -757,8 +767,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 SimulatorTableModel.getSingleton().setupModel();
                 ResultTableModel.getSingleton().setupModel();
                 /*if ((ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) &&
-                        (ConfigManager.getSingleton().getFarmLimit() == 0)) {*/
-                if(UnitManager.getSingleton().getUnitByPlainName("archer") != null){
+                (ConfigManager.getSingleton().getFarmLimit() == 0)) {*/
+                if (UnitManager.getSingleton().getUnitByPlainName("archer") != null) {
                     sim = new NewSimulator();
                     lastResult = null;
                 } else {
@@ -773,7 +783,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 buildTables();
                 buildResultTable(new SimulatorResult());
             } catch (Exception e) {
-                e.printStackTrace();
+                fireGlobalWarningEvent("Fehler beim Wechseln des Servers (Grund: " + e.getMessage() + ")");
             }
         }
     }//GEN-LAST:event_fireServerChangedEvent
@@ -899,8 +909,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         DefaultTableCellRenderer winLossRenderer = new DefaultTableCellRenderer() {
 
             @Override
-            public Component getTableCellRendererComponent(
-                    JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = new DefaultTableCellRenderer().getTableCellRendererComponent(table, value, hasFocus, hasFocus, row, row);
                 c.setBackground(Constants.DS_BACK);
                 ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
@@ -957,18 +966,37 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         lastResult = pResult;
     }
 
+    public void fireGlobalErrorEvent(String pMessage) {
+        JOptionPane.showMessageDialog(this, pMessage, "Fehler", JOptionPane.ERROR_MESSAGE);
+        System.exit(1);
+    }
+
+    public void fireGlobalWarningEvent(String pMessage) {
+        JOptionPane.showMessageDialog(this, pMessage, "Warnung", JOptionPane.WARNING_MESSAGE);
+    }
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        System.setProperty("swing.defaultlaf", "net.sourceforge.napkinlaf.NapkinLookAndFeel");
-        java.awt.EventQueue.invokeLater(new Runnable() {
+        try {
+            System.setProperty("swing.defaultlaf", "net.sourceforge.napkinlaf.NapkinLookAndFeel");
+            java.awt.EventQueue.invokeLater(new Runnable() {
 
-            public void run() {
-                new DSWorkbenchSimulatorFrame().setVisible(true);
-            }
-        });
-
+                public void run() {
+                    //new DSWorkbenchSimulatorFrame().setVisible(true);
+                    try {
+                        DSWorkbenchSimulatorFrame.getSingleton().setVisible(true);
+                    } catch (Throwable t) {
+                        JOptionPane.showMessageDialog(null, "A*Star konnte nicht gestartet werden. (Grund: " + t.getMessage() + ")");
+                        System.exit(1);
+                    }
+                }
+            });
+        } catch (Throwable t) {
+            JOptionPane.showMessageDialog(null, "A*Star konnte nicht gestartet werden. (Grund: " + t.getMessage() + ")");
+            System.exit(1);
+        }
 
 
     // System.setProperty("http.proxyHost", "proxy.fzk.de");

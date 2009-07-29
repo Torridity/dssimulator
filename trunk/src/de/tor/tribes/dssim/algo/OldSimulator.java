@@ -18,7 +18,7 @@ import java.util.Hashtable;
  */
 public class OldSimulator extends AbstractSimulator {
 
-    boolean DEBUG = true;
+    boolean DEBUG = false;
 
     public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm) {
         setOff(pOff);
