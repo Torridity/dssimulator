@@ -137,19 +137,24 @@ public class NewSimulator extends AbstractSimulator {
         // <editor-fold defaultstate="collapsed" desc="Wall calculation">
         if (result.isWin() && ramCount > 0) {
             //calculate wall after fight
-
+            //1.09
             double maxDecrement = ramCount * 2 * ramFactor / (4 * Math.pow(1.09, getWallLevel()));
+            //System.out.println("MaxDec " + maxDecrement);
             //double maxDecrement = ramCount * 2 / (4 * Math.pow(1.090012, getWallLevel()));
             double lostUnits = 0;
             double totalUnits = 0;
 
             for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
-                totalUnits += getOff().get(unit).getCount();
-                lostUnits += getOff().get(unit).getCount() - result.getSurvivingOff().get(unit).getCount();
+                //if (!isSpy(unit)) {
+                totalUnits += getOff().get(unit).getCount() * unit.getAttack();
+                lostUnits += (getOff().get(unit).getCount() - result.getSurvivingOff().get(unit).getCount()) * unit.getAttack();
+            //} 
             }
 
             double ratio = lostUnits / totalUnits;
+            // System.out.println("Ratio: " + ratio);
             int wallDecrement = (int) Math.round(-1 * maxDecrement / 2 * ratio + maxDecrement);
+            //System.out.println("WallDec " + wallDecrement);
             result.setWallLevel((getWallLevel() - wallDecrement < 0) ? 0 : getWallLevel() - wallDecrement);
         } else if (ramCount <= 0) {
             //no change
@@ -224,8 +229,17 @@ public class NewSimulator extends AbstractSimulator {
                 }
                 } else {*/
                 maxDecrement = cataCount * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.09, getBuildingLevel()));
+                /*double churchDec = (-61826.086 - 19913.043 * getBuildingLevel()) / (1.0 - 2.0217392 * getBuildingLevel());
+                System.out.println("Build " + getBuildingLevel());
+                
+                System.out.println("ChurchDec " + churchDec);
+                churchDec = ((cataCount * 100) / churchDec);
+                System.out.println("CataDec" + churchDec);
+                System.out.println("CorrDec " + (int) Math.round(-1.0 * churchDec / 2.0 * ratio + churchDec));
+                 */
                 //  }
                 int buildingDecrement = (int) Math.round(-1 * maxDecrement / 2 * ratio + maxDecrement);
+                //  System.out.println("Ratio " + ratio);
                 buildingAfter = getBuildingLevel() - buildingDecrement;
             //@TODO: implement cata -> church (max. dec depending on cata count -> do normal actual destr. calculation afterwards
             }
@@ -299,7 +313,11 @@ public class NewSimulator extends AbstractSimulator {
                 result[ID_INFANTRY] += unit.getAttack() * (double) element.getCount() * element.getTech() * itemFactor;
             }
             if (isCavalery(unit) && !isArcher(unit)) {
-                result[ID_CAVALRY] += unit.getAttack() * (double) element.getCount() * element.getTech() * itemFactor;
+                if (isKnight(unit) && offItem.getItemId() == KnightItem.ID_SPY) {
+                    //if knight is spy is has no off power
+                } else {
+                    result[ID_CAVALRY] += unit.getAttack() * (double) element.getCount() * element.getTech() * itemFactor;
+                }
             }
             if (isArcher(unit)) {
                 result[ID_ARCHER] += unit.getAttack() * (double) element.getCount() * element.getTech() * itemFactor;
@@ -347,22 +365,26 @@ public class NewSimulator extends AbstractSimulator {
             }
 
             double believeFactor = (isDefenderBelieve()) ? 1.0 : 0.5;
+
             // <editor-fold defaultstate="collapsed" desc="Debug output">
             /*
             System.out.println("Item(Def): " + itemFactor);
             System.out.println("Believe(Def): " + believeFactor);
-            */
+             */
             // </editor-fold>
+
             result[ID_INFANTRY] += infantryMulti * unit.getDefense() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
             result[ID_CAVALRY] += cavalryMulti * unit.getDefenseCavalry() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
             result[ID_ARCHER] += archerMulti * unit.getDefenseArcher() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
         }
+
+        // <editor-fold defaultstate="collapsed" desc="Debug output">
         /* System.out.println("BasicResult[");
         for (int j = 0; j < 3; j++) {
         System.out.println("  " + result[j]);
         }
         System.out.println("]");*/
-
+        //</editor-fold>
 
         double nightBonus = (isNightBonus()) ? 2 : 1;
         double[] basicDefense = new double[]{0.0, 0.0, 0.0};
@@ -371,7 +393,9 @@ public class NewSimulator extends AbstractSimulator {
             basicDefense[1] = (20.0 + (double) pWallAtFight * 50.0) * ((totalOff == 0) ? 0 : pOffStrengths[ID_CAVALRY] / totalOff);
             basicDefense[2] = (20.0 + (double) pWallAtFight * 50.0) * ((totalOff == 0) ? 0 : pOffStrengths[ID_ARCHER] / totalOff);
         }
-        /* System.out.println("BasicDefense[");
+
+        // <editor-fold defaultstate="collapsed" desc="Debug output">
+       /* System.out.println("BasicDefense[");
         for (int j = 0; j < 3; j++) {
         System.out.println("  " + basicDefense[j]);
         }
@@ -379,21 +403,27 @@ public class NewSimulator extends AbstractSimulator {
 
         System.out.println("WallAtFight: " + pWallAtFight);
         System.out.println("WallMulti: " + Math.pow(1.037, pWallAtFight));*/
+        //</editor-fold>
+
         result[0] = result[0] * nightBonus * Math.pow(1.037, pWallAtFight) + basicDefense[0];
         result[1] = result[1] * nightBonus * Math.pow(1.037, pWallAtFight) + basicDefense[1];
         result[2] = result[2] * nightBonus * Math.pow(1.037, pWallAtFight) + basicDefense[2];
+
+        // <editor-fold defaultstate="collapsed" desc="Debug output">
         /* System.out.println("FinalResult[");
         for (int j = 0; j < 3; j++) {
         System.out.println("  " + result[j]);
         }
         System.out.println("]");*/
+        //</editor-fold>
+
         return result;
     }
 
     private double[] calulateLosses(double[] pOffStrengths, double[] pDeffStrengths, int pType) {
         double[] losses = new double[3];
         double lossFactor = 1.5;
-        if(ConfigManager.getSingleton().getFarmLimit() != 0){
+        if (ConfigManager.getSingleton().getFarmLimit() != 0) {
             lossFactor = 1.6;
         }
         if (pType == ID_OFF) {
@@ -410,13 +440,6 @@ public class NewSimulator extends AbstractSimulator {
                         losses[i] = 1;
                     }//end of complete loss
                 }//end of nothing lost
-               /* if(i == ID_ARCHER){
-            System.out.println("ARCHER_LOSS");
-            System.out.println("Off " + pOffStrengths[i]);
-            System.out.println("Def " + pDeffStrengths[i]);
-            System.out.println(losses[i]);
-            System.out.println("----");
-            }*/
             }//end of for loop
         } else {
             //calculate losses
@@ -451,16 +474,27 @@ public class NewSimulator extends AbstractSimulator {
                 } else {
                     //only correct spys in first round
                     if (pSpyRound) {
-                        int spyLosses = 0;
+                        //int spyLosses = 0;
+                        double spyLosses = 0;
+                        double spyRateTillDeath = 2.0;
+                        if (ConfigManager.getSingleton().getSpyType() == 3) {
+                            spyRateTillDeath = 1.0;
+                        }
+                        double lossFactor = 1.5;
+                        if (ConfigManager.getSingleton().getFarmLimit() != 0) {
+                            lossFactor = 1.6;
+                        }
+
                         //special spy calculation
                         if (unitOffElement.getCount() == 0) {
                             //no spy
                             spyLosses = 0;
-                        } else if ((double) unitDefElement.getCount() / (double) unitOffElement.getCount() >= 2) {
+                        } else if ((double) unitDefElement.getCount() / (double) unitOffElement.getCount() >= spyRateTillDeath) {
                             //no change
                             spyLosses = unitOffElement.getCount();
                         } else {
-                            spyLosses = (int) Math.round((double) unitOffElement.getCount() * Math.pow((double) unitDefElement.getCount() / ((double) unitOffElement.getCount() * 2.0), 1.5));
+                            //increment Def by 1 and use lossRatio and spyRate depending on server
+                            spyLosses = (double) unitOffElement.getCount() * Math.pow((double) (unitDefElement.getCount() + 1) / ((double) unitOffElement.getCount() * spyRateTillDeath), lossFactor);
                         }
                         unitOffElement.setCount((int) Math.round((double) unitOffElement.getCount() - spyLosses));
                     }
