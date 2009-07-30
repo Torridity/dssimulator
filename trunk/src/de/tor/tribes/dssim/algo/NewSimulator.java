@@ -194,19 +194,14 @@ public class NewSimulator extends AbstractSimulator {
                 }
                 double ratio = lostUnits / totalUnits;
                 int buildingDecrement = 0;
-                /* if (isCataChurch() && ConfigManager.getSingleton().isChurch()) {
-                buildingDecrement = getMaxChurchDestruction((int) Math.round(cataCount * ratio / 2));
-                if (buildingDecrement == -1) {
-                //church level larger than 3, so use normal calculation
-                buildingDecrement = (int) Math.round((((cataCount * ratio) * cata.getUnit().getAttack() * cataFactor) / (600 * Math.pow(1.09, getBuildingLevel()))));
+                if (isCataChurch()&& getBuildingLevel() <= 3) {
+                    //cata is aiming at the church
+                    buildingDecrement = (int) Math.round(getMaxChurchDestruction(cataCount * cataFactor * ratio) / 2);
+                } else {
+                    //cata is aiming elsewhere
+                    buildingDecrement = (int) Math.round(((cataCount * cata.getUnit().getAttack() * cataFactor) / (600 * Math.pow(1.09, getBuildingLevel()))) * ratio);
                 }
-                } else {*/
-                buildingDecrement = (int) Math.round(((cataCount * cata.getUnit().getAttack() * cataFactor) / (600 * Math.pow(1.09, getBuildingLevel()))) * ratio);
-                // }
                 buildingAfter = getBuildingLevel() - buildingDecrement;
-
-            //@TODO: implement cata -> church (cataCount/ratio/2 must be equal the min number of needed catas per level
-
             } else {
                 //attacker wins
                 double lostUnits = 0;
@@ -219,27 +214,17 @@ public class NewSimulator extends AbstractSimulator {
 
                 double ratio = lostUnits / totalUnits;
                 double maxDecrement = 0.0;
-                /* if (isCataChurch() && ConfigManager.getSingleton().isChurch()) {
-                maxDecrement = getMaxChurchDestruction((int) Math.round(cataCount));
-                if (maxDecrement == -1) {
-                //church level larger than 3, so use normal calculation
-                maxDecrement = cataCount * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.09, getBuildingLevel()));
+                int buildingDecrement = 0;
+                if (isCataChurch() && getBuildingLevel() <= 3) {
+                    //cata is aiming at the church
+                    maxDecrement = getMaxChurchDestruction(cataCount * cataFactor);
+                    buildingDecrement = (int) Math.round(-1 * maxDecrement / 2 * ratio + maxDecrement);
+                } else {
+                    //cata is aiming elsewhere
+                    maxDecrement = cataCount * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.09, getBuildingLevel()));
+                    buildingDecrement = (int) Math.round(-1 * maxDecrement / 2 * ratio + maxDecrement);
                 }
-                } else {*/
-                maxDecrement = cataCount * cata.getUnit().getAttack() * cataFactor / (300 * Math.pow(1.09, getBuildingLevel()));
-                /*double churchDec = (-61826.086 - 19913.043 * getBuildingLevel()) / (1.0 - 2.0217392 * getBuildingLevel());
-                System.out.println("Build " + getBuildingLevel());
-                
-                System.out.println("ChurchDec " + churchDec);
-                churchDec = ((cataCount * 100) / churchDec);
-                System.out.println("CataDec" + churchDec);
-                System.out.println("CorrDec " + (int) Math.round(-1.0 * churchDec / 2.0 * ratio + churchDec));
-                 */
-                //  }
-                int buildingDecrement = (int) Math.round(-1 * maxDecrement / 2 * ratio + maxDecrement);
-                //  System.out.println("Ratio " + ratio);
                 buildingAfter = getBuildingLevel() - buildingDecrement;
-            //@TODO: implement cata -> church (max. dec depending on cata count -> do normal actual destr. calculation afterwards
             }
             result.setBuildingLevel((buildingAfter <= 0) ? 0 : (int) buildingAfter);
         } else {
@@ -250,45 +235,16 @@ public class NewSimulator extends AbstractSimulator {
         return result;
     }
 
-    private int getMaxChurchDestruction(int pCataCount) {
-        if (pCataCount < 120) {
-            //nothing to do
-            return 0;
-        }
+    private double getMaxChurchDestruction(double pCataCount) {
         switch (getBuildingLevel()) {
             case 1: {
-                if (pCataCount >= 400) {
-                    //need at lease 400 cata to destroy church level 1
-                    return 1;
-                } else {
-                    //less than 400 catas
-                    return 0;
-                }
+                return pCataCount / 800;
             }
             case 2: {
-                if (pCataCount < 167) {
-                    //to less catas
-                    return 0;
-                }
-                if ((pCataCount >= 167) && (pCataCount < 500)) {
-                    //max. 1 level
-                    return 1;
-                } else if (pCataCount >= 500) {
-                    //complete church can be destroyed
-                    return 2;
-                }
+                return pCataCount / 333;
             }
             case 3: {
-                if ((pCataCount >= 120) && (pCataCount < 360)) {
-                    //max. 1 level can be destroyed
-                    return 1;
-                } else if ((pCataCount >= 360) && (pCataCount < 600)) {
-                    //max. 2 levels can be destroyed
-                    return 2;
-                } else if (pCataCount >= 600) {
-                    //church can be destroyed
-                    return 3;
-                }
+                return pCataCount / 240;
             }
         }
         return -1;
