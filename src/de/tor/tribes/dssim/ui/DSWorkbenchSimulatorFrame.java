@@ -282,6 +282,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jFarmLevelSpinner = new javax.swing.JSpinner();
         jAttackerBelieve = new javax.swing.JCheckBox();
         jDefenderBelieve = new javax.swing.JCheckBox();
+        jAimChurch = new javax.swing.JCheckBox();
         jPanel2 = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
@@ -613,6 +614,24 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         });
 
+        jAimChurch.setText("Kirche");
+        jAimChurch.setToolTipText("Katapulte auf die Kirche ausrichten");
+        jAimChurch.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jAimChurch.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        jAimChurch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/cata_off.png"))); // NOI18N
+        jAimChurch.setIconTextGap(2);
+        jAimChurch.setMargin(new java.awt.Insets(2, 30, 2, 2));
+        jAimChurch.setMaximumSize(new java.awt.Dimension(85, 18));
+        jAimChurch.setMinimumSize(new java.awt.Dimension(85, 18));
+        jAimChurch.setOpaque(false);
+        jAimChurch.setPreferredSize(new java.awt.Dimension(85, 18));
+        jAimChurch.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/cata.png"))); // NOI18N
+        jAimChurch.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                fireAimChurchStateChangedEvent(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -637,6 +656,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                             .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 424, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jAimChurch, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jFarmLabel)
                                 .addGap(18, 18, 18)
@@ -676,7 +696,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel31, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jAimChurch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jFarmLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jFarmLevelSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -858,6 +880,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         int cataTarget = (Integer) jCataTargetSpinner.getValue();
         boolean cataFarm = false;
         boolean cataChurch = false;
+        if (ConfigManager.getSingleton().isChurch()) {
+            cataChurch = jAimChurch.isSelected();
+        }
         double luck = (Double) jLuckSpinner.getValue();
         double moral = (Integer) jMoralSpinner.getValue();
         int farmLevel = 0;
@@ -905,8 +930,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 ResultTableModel.getSingleton().reset();
                 SimulatorTableModel.getSingleton().setupModel();
                 ResultTableModel.getSingleton().setupModel();
-                /*if ((ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) &&
-                (ConfigManager.getSingleton().getFarmLimit() == 0)) {*/
                 if (UnitManager.getSingleton().getUnitByPlainName("archer") != null) {
                     sim = new NewSimulator();
                     lastResult = null;
@@ -919,6 +942,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 jFarmLabel.setEnabled(ConfigManager.getSingleton().getFarmLimit() != 0);
                 jAttackerBelieve.setEnabled(ConfigManager.getSingleton().isChurch());
                 jDefenderBelieve.setEnabled(ConfigManager.getSingleton().isChurch());
+                jAimChurch.setEnabled(ConfigManager.getSingleton().isChurch());
                 buildTables();
                 buildResultTable(new SimulatorResult());
             } catch (Exception e) {
@@ -953,12 +977,19 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jAboutDialog.setVisible(false);
     }//GEN-LAST:event_fireCloseAboutEvent
 
+    private void fireAimChurchStateChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireAimChurchStateChangedEvent
+        fireCalculateEvent();
+}//GEN-LAST:event_fireAimChurchStateChangedEvent
+
     private void fireCalculateEvent() {
         Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
         Hashtable<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
         boolean nightBonus = jNightBonus.isSelected();
         boolean cataFarm = false;
         boolean cataChurch = false;
+        if (ConfigManager.getSingleton().isChurch()) {
+            cataChurch = jAimChurch.isSelected();
+        }
         int wallLevel = (Integer) jWallSpinner.getValue();
         int cataTarget = (Integer) jCataTargetSpinner.getValue();
         int farmLevel = 0;
@@ -1006,8 +1037,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         ResultTableModel.getSingleton().clear();
 
         // <editor-fold defaultstate="collapsed" desc="Build header renderer">
-        for (int i = 0; i <
-                jResultTable.getColumnCount(); i++) {
+        for (int i = 0; i < jResultTable.getColumnCount(); i++) {
             jResultTable.getColumn(jResultTable.getColumnName(i)).setHeaderRenderer(new UnitTableCellRenderer());
         }
 // </editor-fold>
@@ -1186,6 +1216,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDialog jAboutDialog;
+    private javax.swing.JCheckBox jAimChurch;
     private javax.swing.JToggleButton jAlwaysOnTopButton;
     private javax.swing.JCheckBox jAttackerBelieve;
     private javax.swing.JTable jAttackerTable;
