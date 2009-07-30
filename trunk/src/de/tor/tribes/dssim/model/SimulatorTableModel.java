@@ -40,7 +40,7 @@ public class SimulatorTableModel extends DefaultTableModel {
     public void setupModel() {
         if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
             columnNames = new String[]{"", "Einheit", "Angreifer", "", "Verteidiger", ""};
-            columnClasses = new Class[]{KnightItem.class, String.class, Integer.class, Object.class, Integer.class, KnightItem.class};
+            columnClasses = new Class[]{Object.class, String.class, Integer.class, Object.class, Integer.class, Object.class};
         } else {
             columnNames = new String[]{"", "Einheit", "Angreifer", "Tech", "", "Verteidiger", "Tech", ""};
             columnClasses = new Class[]{Object.class, String.class, Integer.class, Double.class, Object.class, Integer.class, Double.class, Object.class};
@@ -64,7 +64,7 @@ public class SimulatorTableModel extends DefaultTableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        if (getValueAt(rowIndex, columnIndex) != null) {
+        if (!columnClasses[columnIndex].equals(Object.class)) {
             return true;
         }
         return false;

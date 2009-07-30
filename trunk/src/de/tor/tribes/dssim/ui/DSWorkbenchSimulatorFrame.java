@@ -29,10 +29,12 @@ import de.tor.tribes.dssim.util.ImageManager;
 import de.tor.tribes.dssim.util.UnitManager;
 import java.awt.AWTEvent;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
+import java.net.URL;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -87,6 +89,20 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         buildServerList();
         jServerList.setSelectedIndex(0);
         fireServerChangedEvent(null);
+        jOffKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+
+            public void valueChanged(ListSelectionEvent e) {
+                fireCalculateEvent();
+            }
+        });
+        jDefKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+
+            public void valueChanged(ListSelectionEvent e) {
+                fireCalculateEvent();
+            }
+        });
+        jAboutDialog.getContentPane().setBackground(Constants.DS_BACK);
+        jAboutDialog.pack();
     }
 
     private void buildServerList() {
@@ -126,7 +142,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             jAttackerTable.getColumnModel().getColumn(4).setMaxWidth(70);
             jAttackerTable.invalidate();
             for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
-                attackerModel.addRow(new Object[]{null, unit.getPlainName(), 0, "", 0, null});
+                attackerModel.addRow(new Object[]{null, unit.getPlainName(), 0, null, 0, null});
             }
         }
         jAttackerTable.revalidate();
@@ -225,11 +241,19 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jAboutDialog = new javax.swing.JDialog();
         jPanel4 = new javax.swing.JPanel();
-        jComboBox1 = new javax.swing.JComboBox();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jLabel28 = new javax.swing.JLabel();
         jLabel29 = new javax.swing.JLabel();
@@ -265,38 +289,126 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jServerList = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
         jAlwaysOnTopButton = new javax.swing.JToggleButton();
+        jButton5 = new javax.swing.JButton();
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jAboutDialog.setTitle("About...");
+        jAboutDialog.setResizable(false);
+        jAboutDialog.setUndecorated(true);
 
-        jList1.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
+        jPanel4.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        jPanel4.setPreferredSize(new java.awt.Dimension(400, 184));
+
+        jLabel6.setForeground(new java.awt.Color(0, 51, 255));
+        jLabel6.setText("http://www.dsworkbench.de");
+        jLabel6.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                fireOpenHomepageEvent(evt);
+            }
         });
-        jScrollPane2.setViewportView(jList1);
+
+        jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel8.setText("<html><u><b>eMail:</b></u></html>");
+
+        jLabel9.setText("support@dsworkbench.de");
+
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel7.setText("<html><u><b>Web:</b></u></html>");
+
+        jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel10.setText("<html><u><b>IRC:</b></u></html>");
+
+        jLabel11.setText("#ds-workbench @irc.quakenet.org");
+
+        jLabel12.setText("Ein besonderer Dank geht an capibarbaroja, Leandro, Cheesaurus und unzählige andere Spieler dafür,");
+
+        jLabel13.setText("dass sie unermüdlich nach den grundlegenden Formeln des DS Kampfsystems gesucht haben.");
+
+        jLabel5.setText("<html>&copy; Torridity (2009)</html>");
+
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/astar_splash.gif"))); // NOI18N
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(103, 103, 103)
-                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(68, 68, 68)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(23, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
+                    .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
+                    .addComponent(jLabel12, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
+                            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGroup(jPanel4Layout.createSequentialGroup()
+                                    .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING))
+                                    .addGap(16, 16, 16))
+                                .addGroup(jPanel4Layout.createSequentialGroup()
+                                    .addComponent(jLabel10)
+                                    .addGap(18, 18, 18)))
+                            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(jLabel11, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 511, Short.MAX_VALUE)
+                                .addComponent(jLabel9, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 511, Short.MAX_VALUE)
+                                .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 511, Short.MAX_VALUE)))))
+                .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(75, 75, 75)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(177, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel7)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel8)
+                    .addComponent(jLabel9))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel11)
+                    .addComponent(jLabel10))
+                .addGap(18, 18, 18)
+                .addComponent(jLabel12)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel13)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel5)
+                .addContainerGap())
         );
 
-        jTabbedPane1.addTab("tab1", jPanel4);
+        jButton1.setText("Schließen");
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                fireCloseAboutEvent(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jAboutDialogLayout = new javax.swing.GroupLayout(jAboutDialog.getContentPane());
+        jAboutDialog.getContentPane().setLayout(jAboutDialogLayout);
+        jAboutDialogLayout.setHorizontalGroup(
+            jAboutDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jAboutDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jAboutDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 584, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        jAboutDialogLayout.setVerticalGroup(
+            jAboutDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jAboutDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, 279, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton1)
+                .addContainerGap())
+        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("A*Star 1.0");
@@ -316,6 +428,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jLabel30.setPreferredSize(new java.awt.Dimension(16, 16));
 
         jNightBonus.setText("Nachtbonus");
+        jNightBonus.setToolTipText("Nachtbonus aktivieren/deaktivieren");
         jNightBonus.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jNightBonus.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
         jNightBonus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/sun.gif"))); // NOI18N
@@ -369,7 +482,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         });
 
         jMoralSpinner.setModel(new javax.swing.SpinnerNumberModel(100, 30, 100, 1));
-        jMoralSpinner.setToolTipText("Moral");
+        jMoralSpinner.setToolTipText("Moral (Angreifer)");
         jMoralSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
         jMoralSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
         jMoralSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
@@ -380,7 +493,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         });
 
         jLuckSpinner.setModel(new javax.swing.SpinnerNumberModel(0.0d, -25.0d, 25.0d, 0.1d));
-        jLuckSpinner.setToolTipText("Glück");
+        jLuckSpinner.setToolTipText("Glück (Angreifer)");
         jLuckSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
         jLuckSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
         jLuckSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
@@ -397,7 +510,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jLabel31.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/main.png"))); // NOI18N
 
         jCataTargetSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, 30, 1));
-        jCataTargetSpinner.setToolTipText("Gebäudestufe");
+        jCataTargetSpinner.setToolTipText("Gebäudestufe Katapultziel");
         jCataTargetSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
         jCataTargetSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
         jCataTargetSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
@@ -456,12 +569,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jScrollPane5.setMinimumSize(new java.awt.Dimension(180, 70));
         jScrollPane5.setPreferredSize(new java.awt.Dimension(180, 70));
 
+        jDefKnightItemList.setToolTipText("Paladingegenstände des Verteidigers");
         jScrollPane5.setViewportView(jDefKnightItemList);
 
         jScrollPane6.setMaximumSize(new java.awt.Dimension(180, 70));
         jScrollPane6.setMinimumSize(new java.awt.Dimension(180, 70));
         jScrollPane6.setPreferredSize(new java.awt.Dimension(180, 70));
 
+        jOffKnightItemList.setToolTipText("Paladingegenstand des Angreifers");
         jScrollPane6.setViewportView(jOffKnightItemList);
 
         jFarmLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/farm.png"))); // NOI18N
@@ -478,7 +593,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         });
 
+        jAttackerBelieve.setSelected(true);
         jAttackerBelieve.setText("Gläubig");
+        jAttackerBelieve.setToolTipText("Angreifer ist gläubig");
         jAttackerBelieve.setOpaque(false);
         jAttackerBelieve.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -486,7 +603,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         });
 
+        jDefenderBelieve.setSelected(true);
         jDefenderBelieve.setText("Gläubig");
+        jDefenderBelieve.setToolTipText("Verteidiger ist gläubig");
         jDefenderBelieve.setOpaque(false);
         jDefenderBelieve.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -610,7 +729,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         });
 
         jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/refresh.png"))); // NOI18N
-        jButton3.setToolTipText("Überlebenden Truppen nochmal angreifen");
+        jButton3.setToolTipText("Die überlebenden Verteidiger einfügen und erneut angreifen");
         jButton3.setMaximumSize(new java.awt.Dimension(50, 33));
         jButton3.setMinimumSize(new java.awt.Dimension(50, 33));
         jButton3.setPreferredSize(new java.awt.Dimension(50, 33));
@@ -641,6 +760,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jLabel1.setText("Server");
 
         jAlwaysOnTopButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/pin_grey.png"))); // NOI18N
+        jAlwaysOnTopButton.setToolTipText("A*Star immer im Vordergrund halten");
         jAlwaysOnTopButton.setMaximumSize(new java.awt.Dimension(50, 33));
         jAlwaysOnTopButton.setMinimumSize(new java.awt.Dimension(50, 33));
         jAlwaysOnTopButton.setPreferredSize(new java.awt.Dimension(50, 33));
@@ -651,6 +771,17 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         });
 
+        jButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/information.png"))); // NOI18N
+        jButton5.setToolTipText("About...");
+        jButton5.setMaximumSize(new java.awt.Dimension(50, 33));
+        jButton5.setMinimumSize(new java.awt.Dimension(50, 33));
+        jButton5.setPreferredSize(new java.awt.Dimension(50, 33));
+        jButton5.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                fireInformationEvent(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -658,12 +789,13 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jServerList, 0, 57, Short.MAX_VALUE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
-                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jAlwaysOnTopButton, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
+                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
+                    .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
+                    .addComponent(jAlwaysOnTopButton, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
+                    .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -679,7 +811,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 379, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 340, Short.MAX_VALUE)
+                .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jAlwaysOnTopButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -752,8 +886,13 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_fireExitEvent
 
     private void fireAttackAgainEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireAttackAgainEvent
-        SimulatorTableModel.getSingleton().setDef(lastResult.getSurvivingDef());
-        fireCalculateEvent();
+        try {
+            SimulatorTableModel.getSingleton().setDef(lastResult.getSurvivingDef());
+            jWallSpinner.setValue(lastResult.getWallLevel());
+            jCataTargetSpinner.setValue(lastResult.getBuildingLevel());
+            fireCalculateEvent();
+        } catch (Exception e) {
+        }
     }//GEN-LAST:event_fireAttackAgainEvent
 
     private void fireServerChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireServerChangedEvent
@@ -795,6 +934,24 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private void fireAlwaysOnTopChangeEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireAlwaysOnTopChangeEvent
         setAlwaysOnTop(jAlwaysOnTopButton.isSelected());
     }//GEN-LAST:event_fireAlwaysOnTopChangeEvent
+
+    private void fireInformationEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireInformationEvent
+        jAboutDialog.setLocationRelativeTo(this);
+        jAboutDialog.setVisible(true);
+    }//GEN-LAST:event_fireInformationEvent
+
+    private void fireOpenHomepageEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireOpenHomepageEvent
+        try {
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().browse(new URL("http://www.dsworkbench.de/index.php?id=73").toURI());
+            }
+        } catch (Exception e) {
+        }
+}//GEN-LAST:event_fireOpenHomepageEvent
+
+    private void fireCloseAboutEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireCloseAboutEvent
+        jAboutDialog.setVisible(false);
+    }//GEN-LAST:event_fireCloseAboutEvent
 
     private void fireCalculateEvent() {
         Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
@@ -984,7 +1141,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             java.awt.EventQueue.invokeLater(new Runnable() {
 
                 public void run() {
-                    //new DSWorkbenchSimulatorFrame().setVisible(true);
                     try {
                         DSWorkbenchSimulatorFrame.getSingleton().setVisible(true);
                     } catch (Throwable t) {
@@ -1029,27 +1185,38 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JDialog jAboutDialog;
     private javax.swing.JToggleButton jAlwaysOnTopButton;
     private javax.swing.JCheckBox jAttackerBelieve;
     private javax.swing.JTable jAttackerTable;
     private javax.swing.JLabel jBuildingInfo;
+    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private javax.swing.JSpinner jCataTargetSpinner;
-    private javax.swing.JComboBox jComboBox1;
     private javax.swing.JList jDefKnightItemList;
     private javax.swing.JCheckBox jDefenderBelieve;
     private javax.swing.JLabel jFarmLabel;
     private javax.swing.JSpinner jFarmLevelSpinner;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel28;
     private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel30;
     private javax.swing.JLabel jLabel31;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JList jList1;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JSpinner jLuckSpinner;
     private javax.swing.JSpinner jMoralSpinner;
     private javax.swing.JCheckBox jNightBonus;
@@ -1061,12 +1228,10 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel4;
     private javax.swing.JTable jResultTable;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JComboBox jServerList;
-    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel jWallInfo;
     private javax.swing.JSpinner jWallSpinner;
     // End of variables declaration//GEN-END:variables

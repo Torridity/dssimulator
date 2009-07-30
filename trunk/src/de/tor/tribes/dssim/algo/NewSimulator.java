@@ -139,23 +139,20 @@ public class NewSimulator extends AbstractSimulator {
             //calculate wall after fight
             //1.09
             //1.0900663842
-            
-            double maxDecrement = (double) ramCount * 2.0 * ramFactor / (4 * Math.pow(1.09, getWallLevel()));
-            System.out.println("MaxDec " + maxDecrement);
-            //double maxDecrement = ramCount * 2 / (4 * Math.pow(1.090012, getWallLevel()));
+
+            double maxDecrement = (double) ramCount * ramElement.getUnit().getAttack() * ramFactor / (4 * Math.pow(1.09, getWallLevel()));
             double lostUnits = 0;
             double totalUnits = 0;
 
             for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
-                totalUnits += getOff().get(unit).getCount() * unit.getAttack();
-                lostUnits += (getOff().get(unit).getCount() - result.getSurvivingOff().get(unit).getCount()) * unit.getAttack();
+                if (!isSpy(unit)) {
+                    totalUnits += getOff().get(unit).getCount();
+                    lostUnits += getOff().get(unit).getCount() - result.getSurvivingOff().get(unit).getCount();
+                }
             }
 
-            System.out.println("Los " + lostUnits);
             double ratio = lostUnits / totalUnits;
-            System.out.println("Ratio: " + ratio);
             int wallDecrement = (int) Math.round(-1 * maxDecrement / 2 * ratio + maxDecrement);
-            System.out.println("WallDec " + (-1 * maxDecrement / 2 * ratio + maxDecrement));
             result.setWallLevel((getWallLevel() - wallDecrement < 0) ? 0 : getWallLevel() - wallDecrement);
         } else if (ramCount <= 0) {
             //no change
@@ -183,7 +180,7 @@ public class NewSimulator extends AbstractSimulator {
             double cataFactor = (offItem.affectsUnit(cata.getUnit())) ? 2.0 : 1.0;
             double cataCount = cata.getCount();
             if (!isAttackerBelieve()) {
-                //if attacker does not believe, ram fight at half power
+                //if attacker does not believe, cata fight at half power
                 cataCount /= 2;
             }
 
