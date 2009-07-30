@@ -41,8 +41,8 @@ public abstract class AbstractSimulator {
         setCataFarm(pCataFarm);
         int cnt = 1;
         while (!result.isWin() && cnt <= 1000) {
-            cnt++;
             result = calculate(pOff, result.getSurvivingDef(), pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel(), pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm);
+            cnt++;
         }
         if (cnt > 1000) {
             result.setNukes(Integer.MAX_VALUE);
