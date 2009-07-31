@@ -49,7 +49,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 
 /**
- *@TODO Set pala depending on pala item selection
  * @author Charon
  */
 public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
@@ -417,13 +416,16 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(239, 235, 223));
 
         jLabel28.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/wall.png"))); // NOI18N
+        jLabel28.setToolTipText("Wallstufe");
 
         jLabel29.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/masks.png"))); // NOI18N
+        jLabel29.setToolTipText("Moral (Angreifer)");
         jLabel29.setMaximumSize(new java.awt.Dimension(16, 16));
         jLabel29.setMinimumSize(new java.awt.Dimension(16, 16));
         jLabel29.setPreferredSize(new java.awt.Dimension(16, 16));
 
         jLabel30.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/klee.png"))); // NOI18N
+        jLabel30.setToolTipText("Glück (Angreifer)");
         jLabel30.setMaximumSize(new java.awt.Dimension(16, 16));
         jLabel30.setMinimumSize(new java.awt.Dimension(16, 16));
         jLabel30.setPreferredSize(new java.awt.Dimension(16, 16));
@@ -469,6 +471,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jWallInfo.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createEtchedBorder(), javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0)));
         jWallInfo.setMaximumSize(new java.awt.Dimension(0, 20));
         jWallInfo.setMinimumSize(new java.awt.Dimension(0, 20));
+        jWallInfo.setOpaque(true);
         jWallInfo.setPreferredSize(new java.awt.Dimension(0, 20));
 
         jWallSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, 20, 1));
@@ -507,8 +510,10 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jBuildingInfo.setBackground(new java.awt.Color(255, 255, 255));
         jBuildingInfo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/main.png"))); // NOI18N
         jBuildingInfo.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createEtchedBorder(), javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0)));
+        jBuildingInfo.setOpaque(true);
 
         jLabel31.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/main.png"))); // NOI18N
+        jLabel31.setToolTipText("Gebäudestufe Katapultziel");
 
         jCataTargetSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, 30, 1));
         jCataTargetSpinner.setToolTipText("Gebäudestufe Katapultziel");
@@ -534,6 +539,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jNukeInfo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/bomb_small.png"))); // NOI18N
         jNukeInfo.setText("(Einzelangriff)");
         jNukeInfo.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createEtchedBorder(), javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0)));
+        jNukeInfo.setOpaque(true);
 
         jPanel3.setMaximumSize(new java.awt.Dimension(2147483647, 280));
         jPanel3.setPreferredSize(new java.awt.Dimension(516, 200));
@@ -581,6 +587,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jScrollPane6.setViewportView(jOffKnightItemList);
 
         jFarmLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/farm.png"))); // NOI18N
+        jFarmLabel.setToolTipText("Gebäudestufe des Bauernhofs");
         jFarmLabel.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/farm_disabled.png"))); // NOI18N
 
         jFarmLevelSpinner.setModel(new javax.swing.SpinnerNumberModel(30, 1, 30, 1));
@@ -772,6 +779,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         });
 
+        jServerList.setToolTipText("Aktiver Server");
         jServerList.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 fireServerChangedEvent(evt);
