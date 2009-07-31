@@ -17,7 +17,7 @@ import java.util.Hashtable;
  */
 public class OldSimulator extends AbstractSimulator {
 
-    boolean DEBUG = true;
+    boolean DEBUG = false;
 
     public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm) {
         setOff(pOff);
@@ -37,15 +37,12 @@ public class OldSimulator extends AbstractSimulator {
         double[] offStrengths = calculateOffStrengthts();
         double[] defStrengths = calculateDefStrengths();
 
-        System.out.println("DD " + defStrengths[0] + "," + defStrengths[1]);
         //calculate infantry-cavalry-ratio
         double infantryRatio = 0.0;
         if (offStrengths[ID_INFANTRY] != 0 || offStrengths[ID_CAVALRY] != 0) {
             infantryRatio = offStrengths[ID_INFANTRY] / (offStrengths[ID_INFANTRY] + offStrengths[ID_CAVALRY]);
         }
-        System.out.println("InfR " + infantryRatio);
         double cavaleryRatio = 1 - infantryRatio;
-        System.out.println("CaR " + cavaleryRatio);
         //adept def based on according ratio
         double defStrength = infantryRatio * defStrengths[ID_INFANTRY] + cavaleryRatio * defStrengths[ID_CAVALRY];
 
@@ -151,16 +148,6 @@ public class OldSimulator extends AbstractSimulator {
             result.setBuildingLevel(getBuildingLevel());
         }
 
-        //calculate who has won
-        result.setWin(true);
-        for (UnitHolder u : UnitManager.getSingleton().getUnits()) {
-            if (result.getSurvivingDef().get(u).getCount() > 0) {
-                //at least one defender has survived
-                result.setWin(false);
-                break;
-            }
-        }
-
         //substract lost units
         for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
             int survivors = 0;
@@ -193,6 +180,16 @@ public class OldSimulator extends AbstractSimulator {
             //calculate def losses
             survivors = (int) Math.round(getDef().get(unit).getCount() - lossRatioDef * getDef().get(unit).getCount());
             result.getSurvivingDef().get(unit).setCount((survivors < 0) ? 0 : survivors);
+        }
+
+        //calculate who has won
+        result.setWin(true);
+        for (UnitHolder u : UnitManager.getSingleton().getUnits()) {
+            if (result.getSurvivingDef().get(u).getCount() > 0) {
+                //at least one defender has survived
+                result.setWin(false);
+                break;
+            }
         }
         return result;
     }
