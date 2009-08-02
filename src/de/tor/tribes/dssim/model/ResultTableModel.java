@@ -35,13 +35,6 @@ public class ResultTableModel extends DefaultTableModel {
     }
 
     public void setupModel() {
-        /*if (UnitManager.getSingleton().getUnits().length > 11) {
-        columnNames = new String[]{"", "spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob"};
-        columnClasses = new Class[]{String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class};
-        } else {
-        columnNames = new String[]{"", "spear", "sword", "axe", "spy", "light", "heavy", "ram", "catapult", "snob"};
-        columnClasses = new Class[]{String.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class, Integer.class};
-        }*/
         String[] ordered = new String[]{"", "spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob"};
         List<String> columns = new LinkedList<String>();
         List<Class> classes = new LinkedList<Class>();

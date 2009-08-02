@@ -26,14 +26,10 @@ public class NewSimulator extends AbstractSimulator {
     private KnightItem offItem = null;
     private List<KnightItem> defItems = null;
 
-    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm) {
-        offItem = pOffItem;
-        defItems = pDefItems;
-        return calculate(pOff, pDef, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm);
-    }
-
     @Override
     public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef,
+            KnightItem pOffItem,
+            List<KnightItem> pDefItems,
             boolean pNightBonus,
             double pLuck,
             double pMoral,
@@ -56,6 +52,8 @@ public class NewSimulator extends AbstractSimulator {
         setDefenderBelieve(pDefenderBelieve);
         setCataChurch(pCataChurch);
         setCataFarm(pCataFarm);
+        offItem = pOffItem;
+        defItems = pDefItems;
         if (offItem == null) {
             offItem = KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM);
         }
@@ -194,7 +192,7 @@ public class NewSimulator extends AbstractSimulator {
                 }
                 double ratio = lostUnits / totalUnits;
                 int buildingDecrement = 0;
-                if (isCataChurch()&& getBuildingLevel() <= 3) {
+                if (isCataChurch() && getBuildingLevel() <= 3) {
                     //cata is aiming at the church
                     buildingDecrement = (int) Math.round(getMaxChurchDestruction(cataCount * cataFactor * ratio) / 2);
                 } else {
@@ -327,9 +325,19 @@ public class NewSimulator extends AbstractSimulator {
              */
             // </editor-fold>
 
-            result[ID_INFANTRY] += infantryMulti * unit.getDefense() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
-            result[ID_CAVALRY] += cavalryMulti * unit.getDefenseCavalry() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
-            result[ID_ARCHER] += archerMulti * unit.getDefenseArcher() * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
+            double farmFactor = 1.0;
+            //calculate farm factor if farm limit exists
+            if (ConfigManager.getSingleton().getFarmLimit() != 0) {
+                double limit = getFarmLevel() * ConfigManager.getSingleton().getFarmLimit();
+                double defFarmUsage = calculateDefFarmUsage();
+                farmFactor = limit / defFarmUsage;
+                if (farmFactor > 1.0) {
+                    farmFactor = 1.0;
+                }
+            }
+            result[ID_INFANTRY] += infantryMulti * unit.getDefense() * farmFactor * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
+            result[ID_CAVALRY] += cavalryMulti * unit.getDefenseCavalry() * farmFactor * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
+            result[ID_ARCHER] += archerMulti * unit.getDefenseArcher() * farmFactor * (double) element.getCount() * element.getTech() * itemFactor * believeFactor;
         }
 
         // <editor-fold defaultstate="collapsed" desc="Debug output">
@@ -468,5 +476,17 @@ public class NewSimulator extends AbstractSimulator {
             int survive = (int) Math.round((double) unitDefElement.getCount() - ((double) unitDefElement.getCount() / ((totalOff == 0) ? 1 : totalOff) * decreaseFactor));
             unitDefElement.setCount(survive);
         }
+    }
+    //Calculate how many farm places are needed for the current def
+
+    private double calculateDefFarmUsage() {
+        Enumeration<UnitHolder> units = getDef().keys();
+        int result = 0;
+        while (units.hasMoreElements()) {
+            UnitHolder unit = units.nextElement();
+            AbstractUnitElement unitElement = getDef().get(unit);
+            result += unit.getPop() * unitElement.getCount();
+        }
+        return result;
     }
 }
