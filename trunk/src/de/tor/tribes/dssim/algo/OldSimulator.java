@@ -5,12 +5,14 @@
 package de.tor.tribes.dssim.algo;
 
 import de.tor.tribes.dssim.types.AbstractUnitElement;
+import de.tor.tribes.dssim.types.KnightItem;
 import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
 import de.tor.tribes.dssim.util.ConfigManager;
 import de.tor.tribes.dssim.util.UnitManager;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 
 /**
  * @author Charon
@@ -19,7 +21,21 @@ public class OldSimulator extends AbstractSimulator {
 
     boolean DEBUG = false;
 
-    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm) {
+    public SimulatorResult calculate(
+            Hashtable<UnitHolder, AbstractUnitElement> pOff,
+            Hashtable<UnitHolder, AbstractUnitElement> pDef,
+            KnightItem pOffItem,
+            List<KnightItem> pDefItems,
+            boolean pNightBonus,
+            double pLuck,
+            double pMoral,
+            int pWallLevel,
+            int pBuildingLevel,
+            int pFarmLevel,
+            boolean pAttackerBelieve,
+            boolean pDefenderBelieve,
+            boolean pCataChurch,
+            boolean pCataFarm) {
         setOff(pOff);
         setDef(pDef);
         setMoral(pMoral);
@@ -130,14 +146,28 @@ public class OldSimulator extends AbstractSimulator {
             double cataAttPoints = cata.getUnit().getAttack() * getTechFactor(cata.getTech());
             if (lossRatioOff > 1) {
                 //attacker lost
-                double buildingDemolish = Math.pow((offStrength / defStrength), lossPowerValue) * (cataAttPoints * cata.getCount()) / (600 * Math.pow(1.09, getBuildingLevel()));
-                println("DemoBuild " + buildingDemolish);
-                buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
+                if (isCataFarm()) {
+                    /* double buildingDemolish = Math.pow((offStrength / defStrength), lossPowerValue) * (cataAttPoints * cata.getCount()) / (700 * Math.pow(1.09, getBuildingLevel()));
+                    buildingDemolish = (buildingDemolish > 3.0) ? 3.0 : buildingDemolish;
+                    println("DemoBuild " + buildingDemolish);
+                    buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);*/
+                } else {
+                    double buildingDemolish = Math.pow((offStrength / defStrength), lossPowerValue) * (cataAttPoints * cata.getCount()) / (600 * Math.pow(1.09, getBuildingLevel()));
+                    println("DemoBuild " + buildingDemolish);
+                    buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
+                }
             } else {
                 //attacker wins
-                double buildingDemolish = (2 - Math.pow((defStrength / offStrength), lossPowerValue)) * (cataAttPoints * cata.getCount()) / (600 * Math.pow(1.09, (getBuildingLevel())));
-                println("DemoBuild " + buildingDemolish);
-                buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
+                if (isCataFarm()) {
+                    /*   System.out.println("Cata farm");
+                    double buildingDemolish = (1-Math.pow((defStrength / offStrength), lossPowerValue)) * (cataAttPoints * cata.getCount()) / (700 * Math.pow(1.09, (getBuildingLevel())));
+                    buildingDemolish = (buildingDemolish > 3.0) ? 3.0 : buildingDemolish;
+                    buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);*/
+                } else {
+                    double buildingDemolish = (2 - Math.pow((defStrength / offStrength), lossPowerValue)) * (cataAttPoints * cata.getCount()) / (600 * Math.pow(1.09, (getBuildingLevel())));
+                    println("DemoBuild " + buildingDemolish);
+                    buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
+                }
             }
             //set building level after destruction
             println("BuildingAfter: " + buildingAfter);

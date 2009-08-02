@@ -1,7 +1,8 @@
 -injars dist\DSSim.jar
 -outjars dist\core.jar
 
--libraryjars 'D:\GRID\Programme\Java\jdk1.6.0_01\jre\lib\rt.jar'
+#-libraryjars 'D:\GRID\Programme\Java\jdk1.6.0_01\jre\lib\rt.jar'
+-libraryjars 'E:\Java\jre6\lib\rt.jar'
 -libraryjars lib\jaxen-1.1-beta-8.jar
 -libraryjars lib\jdom.jar
 -libraryjars lib\junit.jar

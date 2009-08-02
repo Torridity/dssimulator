@@ -5,11 +5,13 @@
 package de.tor.tribes.dssim.model;
 
 import de.tor.tribes.dssim.types.AbstractUnitElement;
-import de.tor.tribes.dssim.types.KnightItem;
 import de.tor.tribes.dssim.types.UnitHolder;
+import de.tor.tribes.dssim.ui.DSWorkbenchSimulatorFrame;
 import de.tor.tribes.dssim.util.ConfigManager;
 import de.tor.tribes.dssim.util.UnitManager;
 import java.util.Hashtable;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -23,6 +25,7 @@ public class SimulatorTableModel extends DefaultTableModel {
     private String[] columnNames = new String[]{"", "Einheit", "Angreifer", "Tech", "", "Verteidiger", "Tech", ""};
 
     SimulatorTableModel() {
+        super();
         setupModel();
     }
 
@@ -64,7 +67,7 @@ public class SimulatorTableModel extends DefaultTableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        if (!columnClasses[columnIndex].equals(Object.class)) {
+        if (!(getValueAt(rowIndex, columnIndex) instanceof String)) {
             return true;
         }
         return false;
@@ -87,7 +90,14 @@ public class SimulatorTableModel extends DefaultTableModel {
                 Integer count = (Integer) getValueAt(i, 2);
                 //add element if cout larger than 0
                 UnitHolder unit = (UnitHolder) UnitManager.getSingleton().getUnitByPlainName((String) getValueAt(i, 1));
-                int tech = (int) Math.rint((Double) getValueAt(i, 3));
+                int tech = 1;
+                Object val = getValueAt(i, 3);
+
+                if (val instanceof Double) {
+                    tech = (int) Math.rint((Double) val);
+                } else {
+                    tech = (Integer) val;
+                }
                 AbstractUnitElement element = new AbstractUnitElement(unit, count, tech);
                 result.put(unit, element);
             }//end of all rows
@@ -117,9 +127,9 @@ public class SimulatorTableModel extends DefaultTableModel {
                 Object val = getValueAt(i, 6);
 
                 if (val instanceof Double) {
-                    tech = (int) Math.rint((Double) getValueAt(i, 6));
+                    tech = (int) Math.rint((Double) val);
                 } else {
-                    tech = (Integer) getValueAt(i, 6);
+                    tech = (Integer) val;
                 }
 
                 AbstractUnitElement element = new AbstractUnitElement(unit, count, tech);
@@ -166,15 +176,61 @@ public class SimulatorTableModel extends DefaultTableModel {
             for (int i = 0; i < getRowCount(); i++) {
                 String unitName = (String) getValueAt(i, 1);
                 UnitHolder unit = UnitManager.getSingleton().getUnitByPlainName(unitName);
-                setValueAt(pDef.get(unit).getCount(), i, 4);
+                AbstractUnitElement elem = pDef.get(unit);
+                if (elem != null) {
+                    setValueAt(pDef.get(unit).getCount(), i, 4);
+                } else {
+                    setValueAt(0, i, 4);
+                }
             }//end of all rows
         } else {
             for (int i = 0; i < getRowCount(); i++) {
                 String unitName = (String) getValueAt(i, 1);
                 UnitHolder unit = UnitManager.getSingleton().getUnitByPlainName(unitName);
-                setValueAt(pDef.get(unit).getCount(), i, 5);
-                setValueAt(pDef.get(unit).getTech(), i, 6);
+                AbstractUnitElement elem = pDef.get(unit);
+                if (elem != null) {
+                    setValueAt(pDef.get(unit).getCount(), i, 5);
+                    setValueAt(pDef.get(unit).getTech(), i, 6);
+                } else {
+                    setValueAt(0, i, 5);
+                    setValueAt(1.0, i, 6);
+                }
             }//end of all rows
         }//end of getting table
+    }
+
+    public void setOff(Hashtable<UnitHolder, AbstractUnitElement> pOff) {
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
+            //return new world values
+            for (int i = 0; i < getRowCount(); i++) {
+                String unitName = (String) getValueAt(i, 1);
+                UnitHolder unit = UnitManager.getSingleton().getUnitByPlainName(unitName);
+                AbstractUnitElement elem = pOff.get(unit);
+                if (elem != null) {
+                    setValueAt(pOff.get(unit).getCount(), i, 2);
+                } else {
+                    setValueAt(0, i, 2);
+                }
+            }//end of all rows
+        } else {
+            for (int i = 0; i < getRowCount(); i++) {
+                String unitName = (String) getValueAt(i, 1);
+                UnitHolder unit = UnitManager.getSingleton().getUnitByPlainName(unitName);
+                AbstractUnitElement elem = pOff.get(unit);
+                if (elem != null) {
+                    setValueAt(pOff.get(unit).getCount(), i, 2);
+                    setValueAt(pOff.get(unit).getTech(), i, 3);
+                } else {
+                    setValueAt(0, i, 2);
+                    setValueAt(1.0, i, 3);
+                }
+            }//end of all rows
+        }//end of getting table
+    }
+
+    @Override
+    public void setValueAt(Object pValue, int pRow, int pCol) {
+        super.setValueAt(pValue, pRow, pCol);
+        fireTableDataChanged();
     }
 }
