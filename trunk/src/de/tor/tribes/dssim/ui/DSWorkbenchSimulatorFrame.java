@@ -35,15 +35,19 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
@@ -64,8 +68,14 @@ import net.sourceforge.napkinlaf.NapkinLookAndFeel;
 public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
     private static DSWorkbenchSimulatorFrame SINGLETON = null;
+    private final String FONT_PROP = "ui.font";
+    private final String SERVER_PROP = "default.server";
+    private static final int DEFAULT_FONT = 0;
+    private static final int SANS_SERIF_FONT = 1;
     private AbstractSimulator sim = null;
     private SimulatorResult lastResult = null;
+    private Properties mProperties = null;
+    private Font baseFont = null;
 
     public static synchronized DSWorkbenchSimulatorFrame getSingleton() {
         if (SINGLETON == null) {
@@ -74,13 +84,32 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         return SINGLETON;
     }
 
+    public Properties getProperties() {
+        return mProperties;
+    }
+
     /** Creates new form DSWorkbenchSimulatorFrame */
     DSWorkbenchSimulatorFrame() {
         initComponents();
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+            public void run() {
+                try {
+                    String dataDir = SimIOHelper.getDataDir();
+                    DSWorkbenchSimulatorFrame.getSingleton().getProperties().store(new FileOutputStream(dataDir + "/astar.props"), "");
+                } catch (Exception e) {
+                    //failed to store properties...so what!?
+                }
+            }
+        }));
         try {
-            SimIOHelper.readTroopSetup("");
+            String dataDir = SimIOHelper.getDataDir();
+            mProperties = new Properties();
+            mProperties.load(new FileInputStream(dataDir + "/astar.props"));
         } catch (Exception e) {
+            //failed to load properties
         }
+
         setTitle("A*Star - Attack Simulator for Tribal Wars v" + Constants.VERSION + Constants.VERSION_ADDITION);
         Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
 
@@ -102,7 +131,12 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
 
         buildServerList();
-        jServerList.setSelectedIndex(0);
+        String server = mProperties.getProperty(SERVER_PROP);
+        if (server == null) {
+            jServerList.setSelectedIndex(0);
+        } else {
+            jServerList.setSelectedItem(server);
+        }
         fireServerChangedEvent(null);
         jOffKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
@@ -1123,6 +1157,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 jAimChurch.setEnabled(ConfigManager.getSingleton().isChurch());
                 buildTables();
                 buildResultTable(new SimulatorResult());
+                mProperties.put(SERVER_PROP, serverID);
             } catch (Exception e) {
                 fireGlobalWarningEvent("Fehler beim Wechseln des Servers (Grund: " + e.getMessage() + ")");
             }
@@ -1138,9 +1173,28 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_fireAlwaysOnTopChangeEvent
 
     private void fireInformationEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireInformationEvent
+        /*  if (UIManager.get("Label.font").equals(baseFont)) {
+        Font f = new Font("SansSerif", Font.PLAIN, 11);
+        setApplicationFont(f);
+        } else {
+        setApplicationFont(baseFont);
+        }
+
+        SwingUtilities.updateComponentTreeUI(DSWorkbenchSimulatorFrame.this);
         jAboutDialog.setLocationRelativeTo(this);
-        jAboutDialog.setVisible(true);
+        jAboutDialog.setVisible(true);*/
     }//GEN-LAST:event_fireInformationEvent
+
+    public void setApplicationFont(Font font) {
+        Enumeration enumer = UIManager.getDefaults().keys();
+        while (enumer.hasMoreElements()) {
+            Object key = enumer.nextElement();
+            Object value = UIManager.get(key);
+            if (value instanceof Font) {
+                UIManager.put(key, new javax.swing.plaf.FontUIResource(font));
+            }
+        }
+    }
 
     private void fireOpenHomepageEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireOpenHomepageEvent
         try {
@@ -1352,23 +1406,24 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         buildResultTable(pResult);
     }
 
+    public void setBaseFont(Font pFont) {
+        baseFont = pFont;
+    }
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
         try {
-            // System.setProperty("swing.defaultlaf", "net.sourceforge.napkinlaf.NapkinLookAndFeel");
-
             UIManager.setLookAndFeel(new NapkinLookAndFeel());
-
+            final Font base = (Font) UIManager.get("Label.font");
             java.awt.EventQueue.invokeLater(new Runnable() {
 
                 public void run() {
                     try {
                         //   DSWorkbenchSimulatorFrame.getSingleton().getContentPane().setBackground(Constants.DS_BACK);
+                        DSWorkbenchSimulatorFrame.getSingleton().setBaseFont(base);
                         DSWorkbenchSimulatorFrame.getSingleton().setVisible(true);
-
-
                     } catch (Throwable t) {
                         t.printStackTrace();
                         JOptionPane.showMessageDialog(null, "A*Star konnte nicht gestartet werden. (Grund: " + t.getMessage() + ")");
