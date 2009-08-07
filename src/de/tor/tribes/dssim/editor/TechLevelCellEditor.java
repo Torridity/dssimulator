@@ -6,6 +6,8 @@ package de.tor.tribes.dssim.editor;
 
 import de.tor.tribes.dssim.Constants;
 import java.awt.Component;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -26,6 +28,14 @@ public class TechLevelCellEditor extends AbstractCellEditor implements TableCell
             model.addElement(i);
         }
         mEditor.setModel(model);
+        mEditor.addItemListener(new ItemListener() {
+
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    fireEditingStopped();
+                }
+            }
+        });
     }
 
     @Override
@@ -38,8 +48,25 @@ public class TechLevelCellEditor extends AbstractCellEditor implements TableCell
     }
 
     @Override
-    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+    public Component getTableCellEditorComponent(JTable table, Object value,
+            boolean isSelected,
+            int row,
+            int column) {
         mEditor.setSelectedItem(value);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         if (isSelected) {
             mEditor.setBackground(Constants.DS_BACK);
         } else {
