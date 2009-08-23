@@ -61,7 +61,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
-import net.sourceforge.napkinlaf.NapkinLookAndFeel;
 
 /**
  * @author Charon
@@ -134,7 +133,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             fireGlobalErrorEvent("Einheitensymbole konnten nicht geladen werden.");
         }
 
-
         buildServerList();
         String server = mProperties.getProperty(SERVER_PROP);
         if (server == null) {
@@ -158,6 +156,16 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jAboutDialog.getContentPane().setBackground(Constants.DS_BACK);
         jAboutDialog.pack();
+    }
+
+    public void showIntegratedVersion(String pServer) {
+        jServerList.setSelectedItem(pServer);
+        fireServerChangedEvent(null);
+        setBaseFont((Font) UIManager.get("Label.font"));
+        jToggleFontButton.setEnabled(false);
+        setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
+        setTitle("A*Star");
+        setVisible(true);
     }
 
     private void buildServerList() {
@@ -1443,6 +1451,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_fireRemoveResults
 
     private void fireFontChangeEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireFontChangeEvent
+        if (!jToggleFontButton.isEnabled()) {
+            return;
+        }
         if (jToggleFontButton.isSelected()) {
             Font f = new Font("SansSerif", Font.PLAIN, 11);
             setApplicationFont(f);
@@ -1754,7 +1765,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
         try {
-            UIManager.setLookAndFeel(new NapkinLookAndFeel());
+            // UIManager.setLookAndFeel(new NapkinLookAndFeel());
             final Font base = (Font) UIManager.get("Label.font");
             java.awt.EventQueue.invokeLater(new Runnable() {
 
