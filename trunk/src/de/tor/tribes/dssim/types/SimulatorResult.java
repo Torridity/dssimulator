@@ -15,10 +15,15 @@ public class SimulatorResult {
 
     private boolean win = false;
     private int nukes = 1;
+    private Hashtable<UnitHolder, AbstractUnitElement> offBefore = null;
+    private Hashtable<UnitHolder, AbstractUnitElement> defBefore = null;
     private Hashtable<UnitHolder, AbstractUnitElement> survivingOff = null;
     private Hashtable<UnitHolder, AbstractUnitElement> survivingDef = null;
     private int wallLevel = 0;
     private int buildingLevel = 0;
+    private int wallBefore = 0;
+    private int buildingBefore = 0;
+    private boolean cataAtWall = false;
 
     public SimulatorResult() {
         survivingOff = new Hashtable<UnitHolder, AbstractUnitElement>();
@@ -42,6 +47,22 @@ public class SimulatorResult {
             copy = new AbstractUnitElement(unit, element.getCount(), element.getTech());
             survivingDef.put(unit, copy);
         }
+    }
+
+    public void setOffBefore(Hashtable<UnitHolder, AbstractUnitElement> pOff) {
+        offBefore = pOff;
+    }
+
+    public void setDefBefore(Hashtable<UnitHolder, AbstractUnitElement> pDef) {
+        defBefore = pDef;
+    }
+
+    public Hashtable<UnitHolder, AbstractUnitElement> getOffBefore() {
+        return offBefore;
+    }
+
+    public Hashtable<UnitHolder, AbstractUnitElement> getDefBefore() {
+        return defBefore;
     }
 
     public void setNukes(int pNukes) {
@@ -120,5 +141,47 @@ public class SimulatorResult {
      */
     public void setBuildingLevel(int buildingLevel) {
         this.buildingLevel = buildingLevel;
+    }
+
+    /**
+     * @return the wallBefore
+     */
+    public int getWallBefore() {
+        return wallBefore;
+    }
+
+    /**
+     * @param wallBefore the wallBefore to set
+     */
+    public void setWallBefore(int wallBefore) {
+        this.wallBefore = wallBefore;
+    }
+
+    /**
+     * @return the buildingBefore
+     */
+    public int getBuildingBefore() {
+        return buildingBefore;
+    }
+
+    /**
+     * @param buildingBefore the buildingBefore to set
+     */
+    public void setBuildingBefore(int buildingBefore) {
+        this.buildingBefore = buildingBefore;
+    }
+
+    /**
+     * @return the cataAtWall
+     */
+    public boolean isCataAtWall() {
+        return cataAtWall;
+    }
+
+    /**
+     * @param cataAtWall the cataAtWall to set
+     */
+    public void setCataAtWall(boolean cataAtWall) {
+        this.cataAtWall = cataAtWall;
     }
 }

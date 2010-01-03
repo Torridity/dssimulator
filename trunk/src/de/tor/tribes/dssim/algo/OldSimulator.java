@@ -35,7 +35,8 @@ public class OldSimulator extends AbstractSimulator {
             boolean pAttackerBelieve,
             boolean pDefenderBelieve,
             boolean pCataChurch,
-            boolean pCataFarm) {
+            boolean pCataFarm,
+            boolean pCataWall) {
         setOff(pOff);
         setDef(pDef);
         setMoral(pMoral);
@@ -48,7 +49,9 @@ public class OldSimulator extends AbstractSimulator {
         setDefenderBelieve(pDefenderBelieve);
         setCataFarm(pCataFarm);
         setCataChurch(pCataChurch);
+        setCataWall(pCataWall);
         SimulatorResult result = new SimulatorResult(getOff(), getDef());
+        result.setBuildingBefore(pBuildingLevel);
         //obtain current strengths
         double[] offStrengths = calculateOffStrengthts();
         double[] defStrengths = calculateDefStrengths();
@@ -142,6 +145,11 @@ public class OldSimulator extends AbstractSimulator {
         //calculate building destruction
         AbstractUnitElement cata = getOff().get(UnitManager.getSingleton().getUnitByPlainName("catapult"));
         double buildingAfter = getBuildingLevel();
+        if (isCataWall()) {
+            setBuildingLevel(result.getWallLevel());
+            result.setBuildingBefore(result.getWallLevel());
+            buildingAfter = getBuildingLevel();
+        }
         if (cata != null && cata.getCount() != 0) {
             double cataAttPoints = cata.getUnit().getAttack() * getTechFactor(cata.getTech());
             if (lossRatioOff > 1) {

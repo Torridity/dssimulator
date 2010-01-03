@@ -39,7 +39,8 @@ public class NewSimulator extends AbstractSimulator {
             boolean pAttackerBelieve,
             boolean pDefenderBelieve,
             boolean pCataChurch,
-            boolean pCataFarm) {
+            boolean pCataFarm,
+            boolean pCataWall) {
         setOff(pOff);
         setDef(pDef);
         setMoral(pMoral);
@@ -52,6 +53,7 @@ public class NewSimulator extends AbstractSimulator {
         setDefenderBelieve(pDefenderBelieve);
         setCataChurch(pCataChurch);
         setCataFarm(pCataFarm);
+        setCataWall(pCataWall);
         offItem = pOffItem;
         defItems = pDefItems;
         if (offItem == null) {
@@ -61,6 +63,7 @@ public class NewSimulator extends AbstractSimulator {
             defItems = new LinkedList<KnightItem>();
         }
         SimulatorResult result = new SimulatorResult(getOff(), getDef());
+        result.setBuildingBefore(pBuildingLevel);
         AbstractUnitElement ramElement = pOff.get(UnitManager.getSingleton().getUnitByPlainName("ram"));
         int ramCount = 0;
         if (ramElement != null) {
@@ -172,6 +175,11 @@ public class NewSimulator extends AbstractSimulator {
         // <editor-fold defaultstate="collapsed" desc="Building calculation">
         //demolish building
         double buildingAfter = getBuildingLevel();
+        if (isCataWall()) {
+            setBuildingLevel(result.getWallLevel());
+            result.setBuildingBefore(result.getWallLevel());
+            buildingAfter = getBuildingLevel();
+        }
         AbstractUnitElement cata = getOff().get(UnitManager.getSingleton().getUnitByPlainName("catapult"));
         if (cata != null && cata.getCount() != 0) {
             //get additional cata factor for special item

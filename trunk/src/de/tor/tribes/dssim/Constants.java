@@ -12,8 +12,8 @@ import java.awt.Color;
  */
 public class Constants {
 
-    public final static double VERSION = 0.95;
-    public final static String VERSION_ADDITION = "b";
+    public final static double VERSION = 0.96;
+    public final static String VERSION_ADDITION = "";
     public final static Color DS_BACK = new Color(225, 213, 190);
     public final static Color DS_BACK_LIGHT = new Color(239, 235, 223);
     public final static Color WINNER_GREEN = new Color(96, 238, 90);
