@@ -34,18 +34,20 @@ public abstract class AbstractSimulator {
     private boolean defenderBelieve = false;
     private boolean cataChurch = false;
     private boolean cataFarm = false;
+    private boolean cataWall = false;
 
-    public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm);
+    public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm, boolean pCataWall);
 
-    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm) {
-        SimulatorResult result = calculate(pOff, pDef, pOffItem, pDefItems, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm);
+    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm, boolean pCataWall) {
+        SimulatorResult result = calculate(pOff, pDef, pOffItem, pDefItems, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm, pCataWall);
         DSWorkbenchSimulatorFrame.getSingleton().addResultExternally(result);
         setFarmLevel(pFarmLevel);
         setCataChurch(pCataChurch);
         setCataFarm(pCataFarm);
+        setCataWall(pCataWall);
         int cnt = 1;
         while (!result.isWin() && cnt <= 1000) {
-            result = calculate(pOff, result.getSurvivingDef(), pOffItem, pDefItems, pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel(), pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm);
+            result = calculate(pOff, result.getSurvivingDef(), pOffItem, pDefItems, pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel(), pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm, pCataWall);
             if (!result.isWin()) {
                 DSWorkbenchSimulatorFrame.getSingleton().addResultExternally(result);
             }
@@ -234,6 +236,20 @@ public abstract class AbstractSimulator {
      */
     public void setCataChurch(boolean cataChurch) {
         this.cataChurch = cataChurch;
+    }
+
+    /**
+     * @return the cataChurch
+     */
+    public boolean isCataWall() {
+        return cataWall;
+    }
+
+    /**
+     * @param cataChurch the cataChurch to set
+     */
+    public void setCataWall(boolean cataWall) {
+        this.cataWall = cataWall;
     }
 
     /**
