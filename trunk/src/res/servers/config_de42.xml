@@ -7,22 +7,22 @@
 <build_queue>1</build_queue>
 <build>
   <destroy>1</destroy>
+  <buildtime_reduce>0</buildtime_reduce>
+  <buildtime_reduce_points>10</buildtime_reduce_points>
 </build>
 <misc>
-  <log_losses>1</log_losses>
-  <kill_ranking>1</kill_ranking>
-  <tutorial>1</tutorial>
-  <millis_arrival>1</millis_arrival>
-  <command_cancel_time>600</command_cancel_time>
-  <trade_cancel_time>300</trade_cancel_time>
-  <free_premium_points>500</free_premium_points>
-  <free_premium_points2>15000</free_premium_points2>
-  <more_premium>1</more_premium>
-  <online_time>300</online_time>
-  <gm_scan>0.05</gm_scan>
-  <start_christmas_tree>1229558400</start_christmas_tree>
-  <end_christmas_tree>1231200000</end_christmas_tree>
-  <online_time_reminder>0</online_time_reminder>
+<log_losses>1</log_losses>
+<kill_ranking>1</kill_ranking>
+<tutorial>1</tutorial>
+<millis_arrival>1</millis_arrival>
+<command_cancel_time>600</command_cancel_time>
+<trade_cancel_time>300</trade_cancel_time>
+<free_premium_points>500</free_premium_points>
+<free_premium_points2>15000</free_premium_points2>
+<more_premium>1</more_premium>
+<online_time>300</online_time>
+<start_christmas_tree>1261513680</start_christmas_tree>
+<end_christmas_tree>1262818800</end_christmas_tree>
 </misc>
 <newbie>
   <days>5</days>
@@ -51,7 +51,10 @@
   <simple>1</simple>
   <rise>0</rise>
   <max_dist>70</max_dist>
-  <cheap_packets>0</cheap_packets>
+  <factor>1</factor>
+  <coin_wood>28000</coin_wood>
+  <coin_stone>30000</coin_stone>
+  <coin_iron>25000</coin_iron>
 </snob>
 <ally>
   <no_harm>0</no_harm>
@@ -61,6 +64,7 @@
   <limit>0</limit>
   <fixed_allies>0</fixed_allies>
   <diplomacy>1</diplomacy>
+  <reservation_manager>1</reservation_manager>
   <points_member_count>40</points_member_count>
   <bypass_igm_block>0</bypass_igm_block>
   <admin_bypass_igm_block>0</admin_bypass_igm_block>
@@ -82,11 +86,10 @@
   <inner>16000</inner>
   <select_start>1</select_start>
   <village_move_wait>336</village_move_wait>
+  <noble_restart>1</noble_restart>
 </coord>
 <sitter>
-  <allow>1</allow>
-  <illegal_time>48</illegal_time>
-  <block_after>1</block_after>
+<allow>1</allow>
 </sitter>
 <sleep>
   <active>0</active>
@@ -97,5 +100,11 @@
   <max_awake>36</max_awake>
   <warn_time>10</warn_time>
 </sleep>
+<night>
+  <active>1</active>
+  <start_hour>0</start_hour>
+  <end_hour>8</end_hour>
+  <def_factor>2</def_factor>
+</night>
 
 </config>

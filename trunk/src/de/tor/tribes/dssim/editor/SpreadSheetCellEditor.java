@@ -4,9 +4,14 @@
  */
 package de.tor.tribes.dssim.editor;
 
+import de.tor.tribes.dssim.types.UnitHolder;
+import de.tor.tribes.dssim.ui.DSWorkbenchSimulatorFrame;
+import de.tor.tribes.dssim.util.UnitManager;
 import java.awt.Component;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.HashMap;
+import java.util.StringTokenizer;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -39,9 +44,30 @@ public class SpreadSheetCellEditor extends AbstractCellEditor implements TableCe
     @Override
     public Object getCellEditorValue() {
         try {
+            checkMultipleInsert(mEditor.getText());
             return Integer.parseInt(mEditor.getText());
         } catch (Exception e) {
             return 0;
+        }
+    }
+
+    private void checkMultipleInsert(String pValue) {
+        int units = UnitManager.getSingleton().getUnits().length;
+        StringTokenizer t = new StringTokenizer(pValue, " \t");
+        if (t.countTokens() == units) {
+            HashMap<UnitHolder, Integer> unitMap = new HashMap<UnitHolder, Integer>();
+            for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
+                try {
+                    Integer amount = Integer.parseInt(t.nextToken());
+                    unitMap.put(unit, amount);
+                } catch (Exception e) {
+                }
+
+                if (unitMap.size() == units) {
+                    cancelCellEditing();
+                    DSWorkbenchSimulatorFrame.getSingleton().insertMultipleUnits(unitMap);
+                }
+            }
         }
     }
 
