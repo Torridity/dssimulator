@@ -131,9 +131,9 @@
     <build_time>7200</build_time>
   </catapult>
   <snob>
-    <wood>28000</wood>
-    <stone>30000</stone>
-    <iron>25000</iron>
+    <wood>14000</wood>
+    <stone>15000</stone>
+    <iron>12500</iron>
     <pop>100</pop>
     <speed>34.9999999993</speed>
     <attack>30</attack>

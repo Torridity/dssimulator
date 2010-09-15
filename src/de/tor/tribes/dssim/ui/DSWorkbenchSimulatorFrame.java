@@ -39,11 +39,16 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.NumberFormat;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,11 +56,9 @@ import java.util.Properties;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -171,12 +174,56 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         setVisible(true);
     }
 
+    public void insertValuesExternally(Hashtable<String, Double> pValues) {
+        //add units
+        for (int i = 0; i < jAttackerTable.getRowCount(); i++) {
+            String unit = (String) jAttackerTable.getValueAt(i, 1);
+            Double amount = pValues.get("att_" + unit);
+            if (amount != null) {
+                jAttackerTable.setValueAt((int) Math.round(amount), i, 2);
+            }
+            amount = pValues.get("def_" + unit);
+            if (amount != null) {
+                jAttackerTable.setValueAt((int) Math.round(amount), i, 4);
+            }
+        }
+        Double amount = pValues.get("building");
+        if (amount != null) {
+            jCataTargetSpinner.setValue((int) Math.round(amount));
+        }
+        amount = pValues.get("wall");
+        if (amount != null) {
+            jWallSpinner.setValue((int) Math.round(amount));
+        }
+        amount = pValues.get("moral");
+        if (amount != null) {
+            jMoralSpinner.setValue((int) Math.round(amount));
+        }
+        amount = pValues.get("luck");
+        if (amount != null) {
+            jLuckSpinner.setValue(amount);
+        }
+    }
+
+    public void insertMultipleUnits(HashMap<UnitHolder, Integer> pUnits) {
+        if (pUnits == null || pUnits.isEmpty()) {
+            return;
+        }
+        int col = jAttackerTable.getSelectedColumn();
+        int row = 0;
+        for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
+            jAttackerTable.setValueAt(pUnits.get(unit), row, col);
+            row++;
+        }
+    }
+
     private void buildServerList() {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
-        for (int i = 3; i <= 53; i++) {
+        for (int i = 3; i <= 65; i++) {
             model.addElement("de" + i);
         }
         jServerList.setModel(model);
+
     }
 
     private void buildTables() {
@@ -369,7 +416,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
-        buttonGroup1 = new javax.swing.ButtonGroup();
         jPanel1 = new javax.swing.JPanel();
         jLabel28 = new javax.swing.JLabel();
         jLabel29 = new javax.swing.JLabel();
@@ -732,7 +778,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         });
 
-        buttonGroup1.add(jAimChurch);
         jAimChurch.setText("Kirche");
         jAimChurch.setToolTipText("Katapulte auf die Kirche ausrichten");
         jAimChurch.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
@@ -1001,7 +1046,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("Statistik", jPanel5);
 
-        buttonGroup1.add(jAimWall);
         jAimWall.setText("Wall");
         jAimWall.setToolTipText("Katapulte auf den Wall ausrichten");
         jAimWall.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
@@ -1016,7 +1060,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jAimWall.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/cata.png"))); // NOI18N
         jAimWall.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                jAimWallfireAimChurchStateChangedEvent(evt);
+                fireAimAtWallEvent(evt);
             }
         });
 
@@ -1396,7 +1440,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         try {
             SimulatorTableModel.getSingleton().setDef(lastResult.getSurvivingDef());
             jWallSpinner.setValue(lastResult.getWallLevel());
-            if(lastResult.isCataAtWall()){
+            if (lastResult.isCataAtWall()) {
                 jWallSpinner.setValue(lastResult.getBuildingLevel());
             }
             jCataTargetSpinner.setValue(lastResult.getBuildingLevel());
@@ -1482,7 +1526,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_fireCloseAboutEvent
 
     private void fireAimChurchStateChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireAimChurchStateChangedEvent
-        // fireCalculateEvent();
+        if (jAimChurch.isSelected()) {
+            jAimWall.setSelected(false);
+        }
 }//GEN-LAST:event_fireAimChurchStateChangedEvent
 
     private void fireDoSimulationEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireDoSimulationEvent
@@ -1513,9 +1559,11 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jAboutDialog.pack();
     }//GEN-LAST:event_fireFontChangeEvent
 
-    private void jAimWallfireAimChurchStateChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jAimWallfireAimChurchStateChangedEvent
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jAimWallfireAimChurchStateChangedEvent
+    private void fireAimAtWallEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireAimAtWallEvent
+        if (jAimWall.isSelected()) {
+            jAimChurch.setSelected(false);
+        }
+    }//GEN-LAST:event_fireAimAtWallEvent
 
     private void fireCalculateEvent() {
         Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
@@ -1915,8 +1963,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        try {
-            // UIManager.setLookAndFeel(new NapkinLookAndFeel());
+       try {
+            //     UIManager.setLookAndFeel(new NapkinLookAndFeel());
             final Font base = (Font) UIManager.get("Label.font");
             java.awt.EventQueue.invokeLater(new Runnable() {
 
@@ -1941,16 +1989,16 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         // System.setProperty("http.proxyHost", "proxy.fzk.de");
         //  System.setProperty("http.proxyPort", "8000");
 
-        /*   for (int i = 3; i <= 48; i++) {
+       /*    for (int i = 3; i <= 65; i++) {
         System.out.println("Getting units from server de" + i);
         try {
 
         String config = "interface.php?func=get_config";
         String unit = "interface.php?func=get_unit_info";
-        String url = "http://de" + i + ".die-staemme.de/" + config;
+        String url = "http://de" + i + ".die-staemme.de/" + unit;
         URLConnection ucon = new URL(url).openConnection();
         BufferedReader reader = new BufferedReader(new InputStreamReader(ucon.getInputStream()));
-        FileWriter fout = new FileWriter("./src/res/servers/config_de" + i + ".xml");
+        FileWriter fout = new FileWriter("./src/res/servers/units_de" + i + ".xml");
         String line = null;
         while ((line = reader.readLine()) != null) {
         fout.write(line + "\n");
@@ -1967,7 +2015,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JDialog jAboutDialog;
     private javax.swing.JCheckBox jAimChurch;
     private javax.swing.JCheckBox jAimWall;

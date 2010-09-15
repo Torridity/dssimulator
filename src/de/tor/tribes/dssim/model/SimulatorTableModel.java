@@ -230,7 +230,11 @@ public class SimulatorTableModel extends DefaultTableModel {
 
     @Override
     public void setValueAt(Object pValue, int pRow, int pCol) {
-        super.setValueAt(pValue, pRow, pCol);
-        fireTableDataChanged();
+        try {
+            super.setValueAt(pValue, pRow, pCol);
+            fireTableDataChanged();
+        } catch (Exception e) {
+            //setting data failed somehow
+        }
     }
 }

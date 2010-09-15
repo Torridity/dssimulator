@@ -7,6 +7,8 @@
 <build_queue>1</build_queue>
 <build>
   <destroy>1</destroy>
+  <buildtime_reduce>0</buildtime_reduce>
+  <buildtime_reduce_points>10</buildtime_reduce_points>
 </build>
 <misc>
 <log_losses>1</log_losses>
@@ -50,6 +52,9 @@
   <rise>2</rise>
   <max_dist>70</max_dist>
   <factor>1</factor>
+  <coin_wood>28000</coin_wood>
+  <coin_stone>30000</coin_stone>
+  <coin_iron>25000</coin_iron>
 </snob>
 <ally>
   <no_harm>0</no_harm>
@@ -59,6 +64,7 @@
   <limit>0</limit>
   <fixed_allies>0</fixed_allies>
   <diplomacy>1</diplomacy>
+  <reservation_manager>1</reservation_manager>
   <points_member_count>40</points_member_count>
   <bypass_igm_block>0</bypass_igm_block>
   <admin_bypass_igm_block>0</admin_bypass_igm_block>
@@ -80,6 +86,7 @@
   <inner>16000</inner>
   <select_start>1</select_start>
   <village_move_wait>336</village_move_wait>
+  <noble_restart>1</noble_restart>
 </coord>
 <sitter>
 <allow>1</allow>
