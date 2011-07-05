@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  *
- * @author Charon
+ * @author Torridity
  */
 public class NewSimulator extends AbstractSimulator {
 

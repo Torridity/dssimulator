@@ -27,6 +27,7 @@ import de.tor.tribes.dssim.types.AbstractUnitElement;
 import de.tor.tribes.dssim.types.KnightItem;
 import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
+import de.tor.tribes.dssim.util.AStarResultReceiver;
 import de.tor.tribes.dssim.util.ConfigManager;
 import de.tor.tribes.dssim.util.ImageManager;
 import de.tor.tribes.dssim.util.UnitManager;
@@ -36,16 +37,13 @@ import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
 import java.net.URL;
-import java.net.URLConnection;
 import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -72,7 +70,7 @@ import javax.swing.table.DefaultTableCellRenderer;
  * @author Charon
  */
 public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
-
+    
     private static DSWorkbenchSimulatorFrame SINGLETON = null;
     private final String FONT_PROP = "ui.font";
     private final String SERVER_PROP = "default.server";
@@ -82,14 +80,16 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private SimulatorResult lastResult = null;
     private Properties mProperties = null;
     private Font baseFont = null;
-
+    private Point mCoordinates = null;
+    private AStarResultReceiver mReceiver = null;
+    
     public static synchronized DSWorkbenchSimulatorFrame getSingleton() {
         if (SINGLETON == null) {
             SINGLETON = new DSWorkbenchSimulatorFrame();
         }
         return SINGLETON;
     }
-
+    
     public Properties getProperties() {
         return mProperties;
     }
@@ -98,7 +98,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     DSWorkbenchSimulatorFrame() {
         initComponents();
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
+            
             public void run() {
                 try {
                     String dataDir = SimIOHelper.getDataDir();
@@ -112,17 +112,13 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             String dataDir = SimIOHelper.getDataDir();
             mProperties = new Properties();
             mProperties.load(new FileInputStream(dataDir + "/astar.props"));
-            if (Integer.parseInt(mProperties.getProperty(FONT_PROP)) != DEFAULT_FONT) {
-                jToggleFontButton.setSelected(true);
-                fireFontChangeEvent(null);
-            }
         } catch (Exception e) {
             //failed to load properties
         }
-
+        
         setTitle("A*Star - Attack Simulator for Tribal Wars v" + Constants.VERSION + Constants.VERSION_ADDITION);
         Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
-
+            
             @Override
             public void eventDispatched(AWTEvent event) {
                 if (((KeyEvent) event).getID() == KeyEvent.KEY_RELEASED) {
@@ -138,7 +134,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         } catch (Exception e) {
             fireGlobalErrorEvent("Einheitensymbole konnten nicht geladen werden.");
         }
-
+        
         buildServerList();
         String server = mProperties.getProperty(SERVER_PROP);
         if (server == null) {
@@ -148,33 +144,41 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         }
         fireServerChangedEvent(null);
         jOffKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
+            
             public void valueChanged(ListSelectionEvent e) {
                 //  fireCalculateEvent();
             }
         });
         jDefKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
+            
             public void valueChanged(ListSelectionEvent e) {
                 // fireCalculateEvent();
             }
         });
-
+        
         jAboutDialog.getContentPane().setBackground(Constants.DS_BACK);
         jAboutDialog.pack();
     }
-
+    
     public void showIntegratedVersion(String pServer) {
         jServerList.setSelectedItem(pServer);
         fireServerChangedEvent(null);
-        setBaseFont((Font) UIManager.get("Label.font"));
-        jToggleFontButton.setEnabled(false);
+        //setBaseFont((Font) UIManager.get("Label.font"));
         setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
         setTitle("A*Star");
         setVisible(true);
     }
-
+    
     public void insertValuesExternally(Hashtable<String, Double> pValues) {
+        insertValuesExternally(null, pValues, null);
+    }
+    
+    public void insertValuesExternally(Point pCoordinates, Hashtable<String, Double> pValues, AStarResultReceiver pReceiver) {
+        mCoordinates = new Point(pCoordinates);
+        mReceiver = pReceiver;
+        if (mReceiver != null && mCoordinates != null) {
+            jTransferButton.setEnabled(true);
+        }
         //add units
         for (int i = 0; i < jAttackerTable.getRowCount(); i++) {
             String unit = (String) jAttackerTable.getValueAt(i, 1);
@@ -204,7 +208,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             jLuckSpinner.setValue(amount);
         }
     }
-
+    
     public void insertMultipleUnits(HashMap<UnitHolder, Integer> pUnits) {
         if (pUnits == null || pUnits.isEmpty()) {
             return;
@@ -216,21 +220,21 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             row++;
         }
     }
-
+    
     private void buildServerList() {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
         for (int i = 3; i <= 65; i++) {
             model.addElement("de" + i);
         }
         jServerList.setModel(model);
-
+        
     }
-
+    
     private void buildTables() {
         //build attacker table
         SimulatorTableModel attackerModel = SimulatorTableModel.getSingleton();
         jAttackerTable.setModel(attackerModel);
-
+        jAttackerTable.setRowHeight(20);
         jAttackerTable.setDefaultEditor(Double.class, new TechLevelCellEditor((ConfigManager.getSingleton().getTech() == ConfigManager.ID_TECH_3) ? 3 : 10));
         jAttackerTable.setDefaultEditor(Integer.class, new SpreadSheetCellEditor());
         jAttackerTable.setDefaultRenderer(String.class, new UnitTableCellRenderer());
@@ -263,7 +267,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         updatePop();
         jAttackerTable.revalidate();
         jAttackerTable.setRowHeight(20);
-
+        
         jScrollPane1.getViewport().setBackground(Constants.DS_BACK_LIGHT);
         jAttackerTable.setBackground(Constants.DS_BACK_LIGHT);
 
@@ -291,7 +295,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jDefKnightItemList.setSelectedIndex(0);
         //list selection listeners
         jOffKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
+            
             public void valueChanged(ListSelectionEvent e) {
                 KnightItem item = (KnightItem) jOffKnightItemList.getSelectedValue();
                 if (item == null || item.getItemId() == KnightItem.ID_NO_ITEM) {
@@ -308,10 +312,10 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         });
         jDefKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
+            
             public void valueChanged(ListSelectionEvent e) {
                 Object[] selection = jDefKnightItemList.getSelectedValues();
-
+                
                 if (selection == null || selection.length == 0) {
                     UnitHolder knight = UnitManager.getSingleton().getUnitByPlainName("knight");
                     if (knight != null) {
@@ -343,12 +347,12 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jResultTable.setCellSelectionEnabled(false);
         jResultTable.setRowSelectionAllowed(true);
         jResultTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
+            
             public void valueChanged(ListSelectionEvent e) {
                 updateResultSelection();
             }
         });
-
+        
         Dimension dim = new Dimension(jScrollPane1.getWidth(), UnitManager.getSingleton().getUnits().length * 20 + 20 + 1);
         jPanel3.setPreferredSize(dim);
         jPanel3.setMinimumSize(dim);
@@ -356,7 +360,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jPanel3.doLayout();
         pack();
     }
-
+    
     public void updatePop() {
         Hashtable<UnitHolder, AbstractUnitElement> troops = SimulatorTableModel.getSingleton().getOff();
         Enumeration<UnitHolder> keys = troops.keys();
@@ -373,7 +377,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             UnitHolder unit = keys.nextElement();
             cnt += unit.getPop() * troops.get(unit).getCount();
         }
-
+        
         if (ConfigManager.getSingleton().getFarmLimit() != 0) {
             int max = (Integer) jFarmLevelSpinner.getValue() * ConfigManager.getSingleton().getFarmLimit();
             if (cnt > max) {
@@ -485,9 +489,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jAlwaysOnTopButton = new javax.swing.JToggleButton();
         jButton5 = new javax.swing.JButton();
-        jToggleFontButton = new javax.swing.JToggleButton();
         jButton6 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
+        jTransferButton = new javax.swing.JButton();
 
         jAboutDialog.setTitle("About...");
         jAboutDialog.setAlwaysOnTop(true);
@@ -544,11 +548,11 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                             .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                 .addGroup(jPanel4Layout.createSequentialGroup()
                                     .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                        .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING))
+                                        .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                     .addGap(16, 16, 16))
                                 .addGroup(jPanel4Layout.createSequentialGroup()
-                                    .addComponent(jLabel10)
+                                    .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGap(18, 18, 18)))
                             .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                 .addComponent(jLabel11, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 511, Short.MAX_VALUE)
@@ -563,22 +567,22 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 15, Short.MAX_VALUE)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel7)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel8)
+                    .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel9))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel11)
-                    .addComponent(jLabel10))
+                    .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel12)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel13)
                 .addGap(18, 18, 18)
-                .addComponent(jLabel5)
+                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -617,18 +621,21 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jLabel28.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/wall.png"))); // NOI18N
         jLabel28.setToolTipText("Wallstufe");
+        jLabel28.setMaximumSize(new java.awt.Dimension(16, 25));
+        jLabel28.setMinimumSize(new java.awt.Dimension(16, 25));
+        jLabel28.setPreferredSize(new java.awt.Dimension(16, 25));
 
         jLabel29.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/masks.png"))); // NOI18N
         jLabel29.setToolTipText("Moral (Angreifer)");
-        jLabel29.setMaximumSize(new java.awt.Dimension(16, 16));
-        jLabel29.setMinimumSize(new java.awt.Dimension(16, 16));
-        jLabel29.setPreferredSize(new java.awt.Dimension(16, 16));
+        jLabel29.setMaximumSize(new java.awt.Dimension(16, 25));
+        jLabel29.setMinimumSize(new java.awt.Dimension(16, 25));
+        jLabel29.setPreferredSize(new java.awt.Dimension(16, 25));
 
         jLabel30.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/klee.png"))); // NOI18N
         jLabel30.setToolTipText("Glück (Angreifer)");
-        jLabel30.setMaximumSize(new java.awt.Dimension(16, 16));
-        jLabel30.setMinimumSize(new java.awt.Dimension(16, 16));
-        jLabel30.setPreferredSize(new java.awt.Dimension(16, 16));
+        jLabel30.setMaximumSize(new java.awt.Dimension(16, 25));
+        jLabel30.setMinimumSize(new java.awt.Dimension(16, 25));
+        jLabel30.setPreferredSize(new java.awt.Dimension(16, 25));
 
         jNightBonus.setText("Nachtbonus");
         jNightBonus.setToolTipText("Nachtbonus aktivieren/deaktivieren");
@@ -637,7 +644,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jNightBonus.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/sun.gif"))); // NOI18N
         jNightBonus.setIconTextGap(2);
         jNightBonus.setMargin(new java.awt.Insets(2, 0, 2, 2));
-        jNightBonus.setMaximumSize(new java.awt.Dimension(85, 18));
+        jNightBonus.setMaximumSize(new java.awt.Dimension(85, 25));
         jNightBonus.setMinimumSize(new java.awt.Dimension(85, 18));
         jNightBonus.setOpaque(false);
         jNightBonus.setPreferredSize(new java.awt.Dimension(85, 18));
@@ -650,9 +657,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jWallSpinner.setModel(new javax.swing.SpinnerNumberModel(20, 0, 20, 1));
         jWallSpinner.setToolTipText("Wallstufe");
-        jWallSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
-        jWallSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
-        jWallSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
+        jWallSpinner.setMaximumSize(new java.awt.Dimension(60, 25));
+        jWallSpinner.setMinimumSize(new java.awt.Dimension(60, 25));
+        jWallSpinner.setPreferredSize(new java.awt.Dimension(60, 25));
         jWallSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 fireStateChangedEvent(evt);
@@ -661,9 +668,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jMoralSpinner.setModel(new javax.swing.SpinnerNumberModel(100, 30, 100, 1));
         jMoralSpinner.setToolTipText("Moral (Angreifer)");
-        jMoralSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
-        jMoralSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
-        jMoralSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
+        jMoralSpinner.setMaximumSize(new java.awt.Dimension(60, 25));
+        jMoralSpinner.setMinimumSize(new java.awt.Dimension(60, 25));
+        jMoralSpinner.setPreferredSize(new java.awt.Dimension(60, 25));
         jMoralSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 fireStateChangedEvent(evt);
@@ -672,9 +679,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jLuckSpinner.setModel(new javax.swing.SpinnerNumberModel(0.0d, -25.0d, 25.0d, 0.1d));
         jLuckSpinner.setToolTipText("Glück (Angreifer)");
-        jLuckSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
-        jLuckSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
-        jLuckSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
+        jLuckSpinner.setMaximumSize(new java.awt.Dimension(60, 25));
+        jLuckSpinner.setMinimumSize(new java.awt.Dimension(60, 25));
+        jLuckSpinner.setPreferredSize(new java.awt.Dimension(60, 25));
         jLuckSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 fireStateChangedEvent(evt);
@@ -683,12 +690,15 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         jLabel31.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/main.png"))); // NOI18N
         jLabel31.setToolTipText("Gebäudestufe Katapultziel");
+        jLabel31.setMaximumSize(new java.awt.Dimension(16, 25));
+        jLabel31.setMinimumSize(new java.awt.Dimension(16, 25));
+        jLabel31.setPreferredSize(new java.awt.Dimension(16, 25));
 
         jCataTargetSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, 30, 1));
         jCataTargetSpinner.setToolTipText("Gebäudestufe Katapultziel");
-        jCataTargetSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
-        jCataTargetSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
-        jCataTargetSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
+        jCataTargetSpinner.setMaximumSize(new java.awt.Dimension(60, 25));
+        jCataTargetSpinner.setMinimumSize(new java.awt.Dimension(60, 25));
+        jCataTargetSpinner.setPreferredSize(new java.awt.Dimension(60, 25));
         jCataTargetSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 fireStateChangedEvent(evt);
@@ -746,12 +756,15 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jFarmLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/farm.png"))); // NOI18N
         jFarmLabel.setToolTipText("Gebäudestufe des Bauernhofs");
         jFarmLabel.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/farm_disabled.png"))); // NOI18N
+        jFarmLabel.setMaximumSize(new java.awt.Dimension(16, 25));
+        jFarmLabel.setMinimumSize(new java.awt.Dimension(16, 25));
+        jFarmLabel.setPreferredSize(new java.awt.Dimension(16, 25));
 
         jFarmLevelSpinner.setModel(new javax.swing.SpinnerNumberModel(30, 1, 30, 1));
         jFarmLevelSpinner.setToolTipText("Gebäudestufe des Bauernhofs");
-        jFarmLevelSpinner.setMaximumSize(new java.awt.Dimension(60, 18));
-        jFarmLevelSpinner.setMinimumSize(new java.awt.Dimension(60, 18));
-        jFarmLevelSpinner.setPreferredSize(new java.awt.Dimension(60, 18));
+        jFarmLevelSpinner.setMaximumSize(new java.awt.Dimension(60, 25));
+        jFarmLevelSpinner.setMinimumSize(new java.awt.Dimension(60, 25));
+        jFarmLevelSpinner.setPreferredSize(new java.awt.Dimension(60, 25));
         jFarmLevelSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 fireStateChangedEvent(evt);
@@ -941,7 +954,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel21)
                     .addComponent(jAttackerBash, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(24, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jSplitPane1.setLeftComponent(jPanel6);
@@ -1028,7 +1041,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel22)
                     .addComponent(jDefenderBash, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(24, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jSplitPane1.setRightComponent(jPanel7);
@@ -1041,7 +1054,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
+            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)
         );
 
         jTabbedPane1.addTab("Statistik", jPanel5);
@@ -1095,11 +1108,11 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jAimChurch, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jFarmLabel)
+                                .addComponent(jFarmLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
                                 .addComponent(jFarmLevelSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel31)
+                                .addComponent(jLabel31, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
                                 .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jAimWall, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1114,7 +1127,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                                     .addComponent(jLuckSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addComponent(jNightBonus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(jPanel1Layout.createSequentialGroup()
-                                    .addComponent(jLabel28)
+                                    .addComponent(jLabel28, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGap(18, 18, 18)
                                     .addComponent(jWallSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                     .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
@@ -1140,40 +1153,39 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jWallSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel28))
+                            .addComponent(jLabel28, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jAimWall, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel31, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel31, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jCataTargetSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jAimChurch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jFarmLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jFarmLevelSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jFarmLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jFarmLevelSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, 139, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel35, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jOffPop, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(jOffPop, javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(jPanel1Layout.createSequentialGroup()
                             .addComponent(jLabel36, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(4, 4, 4)))
+                            .addGap(4, 4, 4))
+                        .addComponent(jLabel35, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(jDefPop, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel29, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jMoralSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel29, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jMoralSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLuckSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel30, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLuckSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jNightBonus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1186,7 +1198,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 203, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel32)
@@ -1239,6 +1251,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         });
 
         jServerList.setToolTipText("Aktiver Server");
+        jServerList.setMinimumSize(new java.awt.Dimension(23, 25));
+        jServerList.setPreferredSize(new java.awt.Dimension(28, 25));
         jServerList.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 fireServerChangedEvent(evt);
@@ -1271,17 +1285,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         });
 
-        jToggleFontButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/font.png"))); // NOI18N
-        jToggleFontButton.setToolTipText("Schriftart wechseln");
-        jToggleFontButton.setMaximumSize(new java.awt.Dimension(50, 33));
-        jToggleFontButton.setMinimumSize(new java.awt.Dimension(50, 33));
-        jToggleFontButton.setPreferredSize(new java.awt.Dimension(50, 33));
-        jToggleFontButton.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                fireFontChangeEvent(evt);
-            }
-        });
-
         jButton6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/attack_axe.png"))); // NOI18N
         jButton6.setToolTipText("Simulation mit den eingestellten Truppen durchführen");
         jButton6.setMaximumSize(new java.awt.Dimension(50, 33));
@@ -1294,13 +1297,25 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         });
 
         jButton7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/remove.png"))); // NOI18N
-        jButton7.setToolTipText("Markierte Ergebnisse löschen");
+        jButton7.setToolTipText("Inhalt der Ergebnistabelle löschen");
         jButton7.setMaximumSize(new java.awt.Dimension(50, 33));
         jButton7.setMinimumSize(new java.awt.Dimension(50, 33));
         jButton7.setPreferredSize(new java.awt.Dimension(50, 33));
         jButton7.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 fireRemoveResults(evt);
+            }
+        });
+
+        jTransferButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/next.png"))); // NOI18N
+        jTransferButton.setToolTipText("<html>Ergebnisse in die DS Workbench Angriffsplanung &uuml;bertragen<br/>Dieser Button ist nur verf&uuml;gbar, wenn A*Star über die Bericht&uuml;bersicht aufgerufen wurde.</html>");
+        jTransferButton.setEnabled(false);
+        jTransferButton.setMaximumSize(new java.awt.Dimension(50, 33));
+        jTransferButton.setMinimumSize(new java.awt.Dimension(50, 33));
+        jTransferButton.setPreferredSize(new java.awt.Dimension(50, 33));
+        jTransferButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                fireTransferToExternalAppEvent(evt);
             }
         });
 
@@ -1317,10 +1332,10 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                     .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
                     .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
                     .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
-                    .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
                     .addComponent(jButton6, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
                     .addComponent(jButton7, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
-                    .addComponent(jToggleFontButton, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE))
+                    .addComponent(jTransferButton, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
+                    .addComponent(jButton4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -1337,12 +1352,12 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 235, Short.MAX_VALUE)
-                .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(22, 22, 22)
-                .addComponent(jToggleFontButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jTransferButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 179, Short.MAX_VALUE)
+                .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(61, 61, 61)
                 .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jAlwaysOnTopButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1376,11 +1391,11 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private void fireStateChangedEvent(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_fireStateChangedEvent
         // fireCalculateEvent();
 }//GEN-LAST:event_fireStateChangedEvent
-
+    
     private void fireNightBonusStateChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireNightBonusStateChangedEvent
         // fireCalculateEvent();
     }//GEN-LAST:event_fireNightBonusStateChangedEvent
-
+    
     private void fireBombDefEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireBombDefEvent
         Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
         Hashtable<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
@@ -1408,7 +1423,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         }
         //build knight item list
         List<KnightItem> defItems = new LinkedList<KnightItem>();
-
+        
         KnightItem offItem = (KnightItem) jOffKnightItemList.getSelectedValue();
         if (offItem == null) {
             offItem = KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM);
@@ -1428,14 +1443,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         } else {
             jNukeInfo.setText("Dorf clean nach " + ((nukes == 1) ? " 1 Angriff" : " " + nukes + " Angriffen"));
         }
-
+        
         buildResultTable(result);
     }//GEN-LAST:event_fireBombDefEvent
-
+    
     private void fireExitEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireExitEvent
         dispose();
     }//GEN-LAST:event_fireExitEvent
-
+    
     private void fireAttackAgainEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireAttackAgainEvent
         try {
             SimulatorTableModel.getSingleton().setDef(lastResult.getSurvivingDef());
@@ -1448,7 +1463,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         } catch (Exception e) {
         }
     }//GEN-LAST:event_fireAttackAgainEvent
-
+    
     private void fireServerChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireServerChangedEvent
         if (evt == null || evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
             try {
@@ -1459,7 +1474,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 ResultTableModel.getSingleton().reset();
                 SimulatorTableModel.getSingleton().setupModel();
                 SimulatorTableModel.getSingleton().addTableModelListener(new TableModelListener() {
-
+                    
                     public void tableChanged(TableModelEvent e) {
                         updatePop();
                     }
@@ -1472,7 +1487,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                     sim = new OldSimulator();
                     lastResult = null;
                 }
-
+                
                 jFarmLevelSpinner.setEnabled(ConfigManager.getSingleton().getFarmLimit() != 0);
                 jFarmLabel.setEnabled(ConfigManager.getSingleton().getFarmLimit() != 0);
                 jAttackerBelieve.setEnabled(ConfigManager.getSingleton().isChurch());
@@ -1486,21 +1501,61 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_fireServerChangedEvent
-
+    
     private void fireBelieveChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireBelieveChangedEvent
         //fireCalculateEvent();
     }//GEN-LAST:event_fireBelieveChangedEvent
-
+    
     private void fireAlwaysOnTopChangeEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireAlwaysOnTopChangeEvent
         setAlwaysOnTop(jAlwaysOnTopButton.isSelected());
     }//GEN-LAST:event_fireAlwaysOnTopChangeEvent
-
+    
     private void fireInformationEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireInformationEvent
-
+        
         jAboutDialog.setLocationRelativeTo(this);
         jAboutDialog.setVisible(true);
     }//GEN-LAST:event_fireInformationEvent
-
+    
+    private void fireOpenHomepageEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireOpenHomepageEvent
+        try {
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().browse(new URL("http://www.dsworkbench.de/index.php?id=73").toURI());
+            }
+        } catch (Exception e) {
+        }
+}//GEN-LAST:event_fireOpenHomepageEvent
+    
+    private void fireCloseAboutEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireCloseAboutEvent
+        jAboutDialog.setVisible(false);
+    }//GEN-LAST:event_fireCloseAboutEvent
+    
+    private void fireAimChurchStateChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireAimChurchStateChangedEvent
+        if (jAimChurch.isSelected()) {
+            jAimWall.setSelected(false);
+        }
+}//GEN-LAST:event_fireAimChurchStateChangedEvent
+    
+    private void fireDoSimulationEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireDoSimulationEvent
+        fireCalculateEvent();
+    }//GEN-LAST:event_fireDoSimulationEvent
+    
+    private void fireRemoveResults(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireRemoveResults
+        //Integer[] selection = getSelectedDataSets();
+        ResultTableModel.getSingleton().clear();//removeResults(selection);
+        //ResultTableModel.getSingleton().clear();
+    }//GEN-LAST:event_fireRemoveResults
+        
+    private void fireAimAtWallEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireAimAtWallEvent
+        if (jAimWall.isSelected()) {
+            jAimChurch.setSelected(false);
+        }
+    }//GEN-LAST:event_fireAimAtWallEvent
+    
+    private void fireTransferToExternalAppEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireTransferToExternalAppEvent
+        if (mReceiver != null && mCoordinates != null) {
+            mReceiver.fireNotifyOnResultEvent(mCoordinates, lastResult.getNukes());
+        }
+    }//GEN-LAST:event_fireTransferToExternalAppEvent
     public void setApplicationFont(Font font) {
         Enumeration enumer = UIManager.getDefaults().keys();
         while (enumer.hasMoreElements()) {
@@ -1511,60 +1566,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         }
     }
-
-    private void fireOpenHomepageEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireOpenHomepageEvent
-        try {
-            if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().browse(new URL("http://www.dsworkbench.de/index.php?id=73").toURI());
-            }
-        } catch (Exception e) {
-        }
-}//GEN-LAST:event_fireOpenHomepageEvent
-
-    private void fireCloseAboutEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireCloseAboutEvent
-        jAboutDialog.setVisible(false);
-    }//GEN-LAST:event_fireCloseAboutEvent
-
-    private void fireAimChurchStateChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireAimChurchStateChangedEvent
-        if (jAimChurch.isSelected()) {
-            jAimWall.setSelected(false);
-        }
-}//GEN-LAST:event_fireAimChurchStateChangedEvent
-
-    private void fireDoSimulationEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireDoSimulationEvent
-        fireCalculateEvent();
-    }//GEN-LAST:event_fireDoSimulationEvent
-
-    private void fireRemoveResults(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireRemoveResults
-        Integer[] selection = getSelectedDataSets();
-        ResultTableModel.getSingleton().removeResults(selection);
-        //ResultTableModel.getSingleton().clear();
-    }//GEN-LAST:event_fireRemoveResults
-
-    private void fireFontChangeEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireFontChangeEvent
-        if (!jToggleFontButton.isEnabled()) {
-            return;
-        }
-        if (jToggleFontButton.isSelected()) {
-            Font f = new Font("SansSerif", Font.PLAIN, 11);
-            setApplicationFont(f);
-            mProperties.put(FONT_PROP, Integer.toString(SANS_SERIF_FONT));
-        } else {
-            setApplicationFont(baseFont);
-            mProperties.put(FONT_PROP, Integer.toString(DEFAULT_FONT));
-        }
-
-        SwingUtilities.updateComponentTreeUI(DSWorkbenchSimulatorFrame.this);
-        SwingUtilities.updateComponentTreeUI(jAboutDialog);
-        jAboutDialog.pack();
-    }//GEN-LAST:event_fireFontChangeEvent
-
-    private void fireAimAtWallEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireAimAtWallEvent
-        if (jAimWall.isSelected()) {
-            jAimChurch.setSelected(false);
-        }
-    }//GEN-LAST:event_fireAimAtWallEvent
-
+    
     private void fireCalculateEvent() {
         Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
         Hashtable<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
@@ -1592,7 +1594,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
         //build knight item list
         List<KnightItem> defItems = new LinkedList<KnightItem>();
-
+        
         KnightItem offItem = (KnightItem) jOffKnightItemList.getSelectedValue();
         if (offItem == null) {
             offItem = KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM);
@@ -1605,12 +1607,12 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 }
             }
         }
-
+        
         SimulatorResult result = sim.calculate(off, def, offItem, defItems, nightBonus, luck, moral, wallLevel, cataTarget, farmLevel, attackerBelieve, defenderBelieve, cataChurch, cataFarm, cataWall);
         jNukeInfo.setText("(Einzelangriff)");
         buildResultTable(result);
     }
-
+    
     private void buildResultTable(SimulatorResult pResult) {
 
         // <editor-fold defaultstate="collapsed" desc="Build header renderer">
@@ -1626,7 +1628,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         // <editor-fold defaultstate="collapsed" desc="Winner/Loser color renderer">
         //final boolean won = pResult.isWin();
         DefaultTableCellRenderer winLossRenderer = new DefaultTableCellRenderer() {
-
+            
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = new DefaultTableCellRenderer().getTableCellRendererComponent(table, value, isSelected, hasFocus, row, row);
@@ -1661,7 +1663,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                     } catch (Exception e) {
                     }
                 }
-
+                
                 ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
                 try {
                     ((JLabel) c).setText(Integer.toString((Integer) value));
@@ -1698,7 +1700,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                             ((JLabel) c).setBackground(Constants.LOSER_RED.darker());
                         }
                     }
-
+                    
                 } else {
                     // if (row == 0 || row == 1 || row == 2) {
                     if (ResultTableModel.getSingleton().isAttackerRow(row)) {
@@ -1727,9 +1729,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jResultTable.setDefaultRenderer(String.class, winLossRenderer);
         jResultTable.getColumnModel().getColumn(0).setMinWidth(100);
         jResultTable.getColumnModel().getColumn(0).setResizable(false);
-
+        
         int wall = (Integer) jWallSpinner.getValue();
-
+        
         if (wall != pResult.getWallLevel()) {
             jWallInfo.setText("Wall zerstört von Stufe " + wall + " auf Stufe " + pResult.getWallLevel());
         } else if (wall == 0) {
@@ -1751,7 +1753,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         lastResult = pResult;
         repaint();
     }
-
+    
     private void addResult(SimulatorResult pResult) {
         Hashtable<UnitHolder, AbstractUnitElement> off = sim.getOff();
         Hashtable<UnitHolder, AbstractUnitElement> def = sim.getDef();
@@ -1762,7 +1764,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         if (off == null || def == null) {
             return;
         }
-
+        
         double attWood = 0;
         double attMud = 0;
         double attIron = 0;
@@ -1793,7 +1795,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             attBash += getAttBash(u, defenderLoss, server);
             // defenderLosses.add(defenderLoss);
         }
-
+        
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMinimumFractionDigits(0);
         nf.setMaximumFractionDigits(0);
@@ -1807,13 +1809,13 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jDefenderIron.setText(nf.format(defIron));
         jDefenderPop.setText(nf.format(defPop));
         jDefenderBash.setText(nf.format(defBash));
-
-
+        
+        
         jResultTable.invalidate();
         ResultTableModel.getSingleton().addResult(pResult);
         jResultTable.revalidate();
     }
-
+    
     private void updateResultSelection() {
         Integer[] datasets = getSelectedDataSets();
         double attWood = 0;
@@ -1848,7 +1850,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 attBash += getAttBash(u, defenderLoss, server);
             }
         }
-
+        
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMinimumFractionDigits(0);
         nf.setMaximumFractionDigits(0);
@@ -1863,7 +1865,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jDefenderPop.setText(nf.format(defPop));
         jDefenderBash.setText(nf.format(defBash));
     }
-
+    
     private int getDefBash(UnitHolder pUnit, int pCount, int pServer) {
         if (pServer < 20) {
             return pCount * (int) pUnit.getPop();
@@ -1895,9 +1897,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         }
     }
-
+    
     private int getAttBash(UnitHolder pUnit, int pCount, int pServer) {
-
+        
         if (pServer < 20) {
             return pCount * (int) pUnit.getPop();
         } else {
@@ -1928,9 +1930,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             }
         }
     }
-
+    
     private Integer[] getSelectedDataSets() {
-
+        
         int[] rows = jResultTable.getSelectedRows();
         List<Integer> selection = new LinkedList<Integer>();
         for (int row : rows) {
@@ -1941,20 +1943,20 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         }
         return selection.toArray(new Integer[]{});
     }
-
+    
     public void fireGlobalErrorEvent(String pMessage) {
         JOptionPane.showMessageDialog(this, pMessage, "Fehler", JOptionPane.ERROR_MESSAGE);
         System.exit(1);
     }
-
+    
     public void fireGlobalWarningEvent(String pMessage) {
         JOptionPane.showMessageDialog(this, pMessage, "Warnung", JOptionPane.WARNING_MESSAGE);
     }
-
+    
     public void addResultExternally(SimulatorResult pResult) {
         buildResultTable(pResult);
     }
-
+    
     public void setBaseFont(Font pFont) {
         baseFont = pFont;
     }
@@ -1963,18 +1965,18 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-       try {
-            //     UIManager.setLookAndFeel(new NapkinLookAndFeel());
+        try {
+            //  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
             final Font base = (Font) UIManager.get("Label.font");
             java.awt.EventQueue.invokeLater(new Runnable() {
-
+                
                 public void run() {
                     try {
                         //   DSWorkbenchSimulatorFrame.getSingleton().getContentPane().setBackground(Constants.DS_BACK);
                         DSWorkbenchSimulatorFrame.getSingleton().setBaseFont(base);
                         DSWorkbenchSimulatorFrame.getSingleton().setVisible(true);
                     } catch (Throwable t) {
-                        t.printStackTrace();
                         JOptionPane.showMessageDialog(null, "A*Star konnte nicht gestartet werden. (Grund: " + t.getMessage() + ")");
                         System.exit(1);
                     }
@@ -1989,10 +1991,10 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         // System.setProperty("http.proxyHost", "proxy.fzk.de");
         //  System.setProperty("http.proxyPort", "8000");
 
-       /*    for (int i = 3; i <= 65; i++) {
+        /*    for (int i = 3; i <= 65; i++) {
         System.out.println("Getting units from server de" + i);
         try {
-
+        
         String config = "interface.php?func=get_config";
         String unit = "interface.php?func=get_unit_info";
         String url = "http://de" + i + ".die-staemme.de/" + unit;
@@ -2009,10 +2011,10 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         } catch (Exception e) {
         e.printStackTrace();
         }
-
+        
         }*/
-
-
+        
+        
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDialog jAboutDialog;
@@ -2097,7 +2099,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox jServerList;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JToggleButton jToggleFontButton;
+    private javax.swing.JButton jTransferButton;
     private javax.swing.JTextField jWallInfo;
     private javax.swing.JSpinner jWallSpinner;
     // End of variables declaration//GEN-END:variables
