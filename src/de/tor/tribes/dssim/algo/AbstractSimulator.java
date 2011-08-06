@@ -45,9 +45,17 @@ public abstract class AbstractSimulator {
         setCataChurch(pCataChurch);
         setCataFarm(pCataFarm);
         setCataWall(pCataWall);
+       
         int cnt = 1;
         while (!result.isWin() && cnt <= 1000) {
+
+
             result = calculate(pOff, result.getSurvivingDef(), pOffItem, pDefItems, pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel(), pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm, pCataWall);
+
+           /* if (pCataWall) {
+                int wallDecrement = result.getBuildingBefore() - result.getBuildingLevel();
+                result.setWallLevel(result.getWallBefore() - wallDecrement);
+            }*/
             if (!result.isWin()) {
                 DSWorkbenchSimulatorFrame.getSingleton().addResultExternally(result);
             }
@@ -66,16 +74,16 @@ public abstract class AbstractSimulator {
     }
 
     public boolean isCavalery(UnitHolder pUnit) {
-        return (pUnit.getPlainName().equals("spy") ||
-                pUnit.getPlainName().equals("light") ||
-                pUnit.getPlainName().equals("marcher") ||
-                pUnit.getPlainName().equals("heavy") ||
-                pUnit.getPlainName().equals("knight"));
+        return (pUnit.getPlainName().equals("spy")
+                || pUnit.getPlainName().equals("light")
+                || pUnit.getPlainName().equals("marcher")
+                || pUnit.getPlainName().equals("heavy")
+                || pUnit.getPlainName().equals("knight"));
     }
 
     public boolean isArcher(UnitHolder pUnit) {
-        return (pUnit.getPlainName().equals("archer") ||
-                pUnit.getPlainName().equals("marcher"));
+        return (pUnit.getPlainName().equals("archer")
+                || pUnit.getPlainName().equals("marcher"));
     }
 
     public boolean isSpy(UnitHolder pUnit) {

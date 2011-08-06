@@ -21,8 +21,8 @@
 <free_premium_points2>15000</free_premium_points2>
 <more_premium>0</more_premium>
 <online_time>300</online_time>
-<start_christmas_tree>1261513680</start_christmas_tree>
-<end_christmas_tree>1262818800</end_christmas_tree>
+<start_christmas_tree>1291590000</start_christmas_tree>
+<end_christmas_tree>1294354740</end_christmas_tree>
 </misc>
 <newbie>
   <days>5</days>
@@ -85,8 +85,9 @@
   <bonus_new>0</bonus_new>
   <inner>5000</inner>
   <select_start>1</select_start>
-  <village_move_wait>336</village_move_wait>
-  <noble_restart>1</noble_restart>
+  <village_move_wait>-1</village_move_wait>
+  <noble_restart>0</noble_restart>
+  <legacy_scenery>1</legacy_scenery>
 </coord>
 <sitter>
 <allow>1</allow>

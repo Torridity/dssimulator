@@ -7,22 +7,18 @@
 <build_queue>1</build_queue>
 <build>
   <destroy>1</destroy>
-  <buildtime_reduce>0</buildtime_reduce>
-  <buildtime_reduce_points>10</buildtime_reduce_points>
 </build>
 <misc>
 <log_losses>1</log_losses>
 <kill_ranking>2</kill_ranking>
-<tutorial>1</tutorial>
-<millis_arrival>0</millis_arrival>
+<tutorial>2</tutorial>
+<millis_arrival></millis_arrival>
 <command_cancel_time>600</command_cancel_time>
 <trade_cancel_time>300</trade_cancel_time>
-<free_premium_points>500</free_premium_points>
-<free_premium_points2>15000</free_premium_points2>
-<more_premium>1</more_premium>
 <online_time>300</online_time>
-<start_christmas_tree>1261106539</start_christmas_tree>
-<end_christmas_tree>1262217600</end_christmas_tree>
+<more_premium>1</more_premium>
+<start_christmas_tree>1291590000</start_christmas_tree>
+<end_christmas_tree>1294354740</end_christmas_tree>
 </misc>
 <newbie>
   <days>5</days>
@@ -32,22 +28,43 @@
 <game>
   <base_config>6</base_config>
   <knight>1</knight>
-  <knight_new_items>0</knight_new_items>
+  <knight_new_items></knight_new_items>
   <archer>1</archer>
   <tech>2</tech>
   <spy>3</spy>
   <farm_limit>0</farm_limit>
-  <church>0</church>
-  <high_buildings>0</high_buildings>
-  <hb_offset>15000</hb_offset>
-  <hb_factor>2000</hb_factor>
+  <church></church>
   <fake_limit>1</fake_limit>
   <barbarian_rise>0.003</barbarian_rise>
   <barbarian_max_points>1500</barbarian_max_points>
+  <hauls>1</hauls>
 </game>
+<buildings>
+  <base_setting>0</base_setting>
+  <hb_offset>15000</hb_offset>
+  <hb_factor>1000</hb_factor>
+  <custom_main>-1</custom_main>
+  <custom_farm>-1</custom_farm>
+  <custom_storage>-1</custom_storage>
+  <custom_place>-1</custom_place>
+  <custom_barracks>-1</custom_barracks>
+  <custom_church>-1</custom_church>
+  <custom_church_f>-1</custom_church_f>
+  <custom_smith>-1</custom_smith>
+  <custom_wood>-1</custom_wood>
+  <custom_stone>-1</custom_stone>
+  <custom_iron>-1</custom_iron>
+  <custom_market>-1</custom_market>
+  <custom_stable>-1</custom_stable>
+  <custom_wall>-1</custom_wall>
+  <custom_garage>-1</custom_garage>
+  <custom_hide>-1</custom_hide>
+  <custom_snob>-1</custom_snob>
+  <custom_statue>-1</custom_statue>
+</buildings>
 <snob>
   <gold>1</gold>
-  <cheap_rebuild>1</cheap_rebuild>
+  <cheap_rebuild></cheap_rebuild>
   <simple>1</simple>
   <rise>0</rise>
   <max_dist>70</max_dist>
@@ -57,17 +74,21 @@
   <coin_iron>25000</coin_iron>
 </snob>
 <ally>
-  <no_harm>0</no_harm>
-  <no_other_support>0</no_other_support>
-  <no_leave>0</no_leave>
-  <no_admin>0</no_admin>
+  <wars_enabled>1</wars_enabled>
+  <no_harm></no_harm>
+  <no_other_support></no_other_support>
+  <no_leave></no_leave>
+  <no_admin></no_admin>
   <limit>0</limit>
   <fixed_allies>0</fixed_allies>
   <diplomacy>1</diplomacy>
   <reservation_manager>1</reservation_manager>
   <points_member_count>40</points_member_count>
-  <bypass_igm_block>0</bypass_igm_block>
-  <admin_bypass_igm_block>0</admin_bypass_igm_block>
+  <bypass_igm_block></bypass_igm_block>
+  <admin_bypass_igm_block></admin_bypass_igm_block>
+  <wars_member_requirement>5</wars_member_requirement>
+  <wars_points_requirement>15000</wars_points_requirement>
+  <wars_autoaccept_days>7</wars_autoaccept_days>
 </ally>
 <win>
   <check>0</check>
@@ -76,17 +97,17 @@
   <hours>0</hours>
 </win>
 <coord>
-  <sector>2</sector>
-  <map_new>1</map_new>
-  <map>1</map>
+  <map_size>1000</map_size>
   <func>4</func>
   <empty_villages>0</empty_villages>
   <bonus_villages>0</bonus_villages>
-  <bonus_new>0</bonus_new>
+  <bonus_new></bonus_new>
   <inner>8000</inner>
   <select_start>1</select_start>
   <village_move_wait>336</village_move_wait>
   <noble_restart>1</noble_restart>
+  <worldmap>1</worldmap>
+  <legacy_scenery>1</legacy_scenery>
 </coord>
 <sitter>
 <allow>1</allow>

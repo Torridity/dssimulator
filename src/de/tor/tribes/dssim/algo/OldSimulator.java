@@ -115,8 +115,8 @@ public class OldSimulator extends AbstractSimulator {
 
         //obtain loss ratio based on tech level
         double lossPowerValue = 1.5;
-        if ((ConfigManager.getSingleton().getTech() == ConfigManager.ID_TECH_10) ||
-                (ConfigManager.getSingleton().getFarmLimit() != 0)) {
+        if ((ConfigManager.getSingleton().getTech() == ConfigManager.ID_TECH_10)
+                || (ConfigManager.getSingleton().getFarmLimit() != 0)) {
             lossPowerValue = 1.6;
         }
 
@@ -150,6 +150,7 @@ public class OldSimulator extends AbstractSimulator {
             result.setBuildingBefore(result.getWallLevel());
             buildingAfter = getBuildingLevel();
         }
+        double buildingDemolish = 0;
         if (cata != null && cata.getCount() != 0) {
             double cataAttPoints = cata.getUnit().getAttack() * getTechFactor(cata.getTech());
             if (lossRatioOff > 1) {
@@ -160,7 +161,7 @@ public class OldSimulator extends AbstractSimulator {
                     println("DemoBuild " + buildingDemolish);
                     buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);*/
                 } else {
-                    double buildingDemolish = Math.pow((offStrength / defStrength), lossPowerValue) * (cataAttPoints * cata.getCount()) / (600 * Math.pow(1.09, getBuildingLevel()));
+                    buildingDemolish = Math.pow((offStrength / defStrength), lossPowerValue) * (cataAttPoints * cata.getCount()) / (600 * Math.pow(1.09, getBuildingLevel()));
                     println("DemoBuild " + buildingDemolish);
                     buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
                 }
@@ -172,7 +173,7 @@ public class OldSimulator extends AbstractSimulator {
                     buildingDemolish = (buildingDemolish > 3.0) ? 3.0 : buildingDemolish;
                     buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);*/
                 } else {
-                    double buildingDemolish = (2 - Math.pow((defStrength / offStrength), lossPowerValue)) * (cataAttPoints * cata.getCount()) / (600 * Math.pow(1.09, (getBuildingLevel())));
+                    buildingDemolish = (2 - Math.pow((defStrength / offStrength), lossPowerValue)) * (cataAttPoints * cata.getCount()) / (600 * Math.pow(1.09, (getBuildingLevel())));
                     println("DemoBuild " + buildingDemolish);
                     buildingAfter = Math.round(getBuildingLevel() - buildingDemolish);
                 }
@@ -180,6 +181,9 @@ public class OldSimulator extends AbstractSimulator {
             //set building level after destruction
             println("BuildingAfter: " + buildingAfter);
             result.setBuildingLevel((buildingAfter <= 0) ? 0 : (int) buildingAfter);
+            if (pCataWall) {
+                result.setWallLevel(result.getWallLevel() - (int) buildingDemolish);
+            }
         } else {
             //no demolishion
             println("BuildingAfter: -unchanged-");

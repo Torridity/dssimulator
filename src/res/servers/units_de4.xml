@@ -5,7 +5,7 @@
     <stone>30</stone>
     <iron>10</iron>
     <pop>1</pop>
-    <speed>11.999999999</speed>
+    <speed>11.99999999904</speed>
     <attack>10</attack>
     <defense>15</defense>
     <defense_cavalry>45</defense_cavalry>
@@ -31,7 +31,7 @@
     <stone>30</stone>
     <iron>40</iron>
     <pop>1</pop>
-    <speed>11.999999999</speed>
+    <speed>11.99999999904</speed>
     <attack>40</attack>
     <defense>10</defense>
     <defense_cavalry>5</defense_cavalry>
