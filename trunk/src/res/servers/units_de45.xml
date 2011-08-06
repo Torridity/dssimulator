@@ -5,7 +5,7 @@
     <stone>30</stone>
     <iron>10</iron>
     <pop>1</pop>
-    <speed>18.0000000005</speed>
+    <speed>18.000000000504</speed>
     <attack>10</attack>
     <defense>15</defense>
     <defense_cavalry>45</defense_cavalry>
@@ -18,7 +18,7 @@
     <stone>30</stone>
     <iron>70</iron>
     <pop>1</pop>
-    <speed>21.9999999993</speed>
+    <speed>21.999999999296</speed>
     <attack>25</attack>
     <defense>50</defense>
     <defense_cavalry>15</defense_cavalry>
@@ -31,7 +31,7 @@
     <stone>30</stone>
     <iron>40</iron>
     <pop>1</pop>
-    <speed>18.0000000005</speed>
+    <speed>18.000000000504</speed>
     <attack>40</attack>
     <defense>10</defense>
     <defense_cavalry>5</defense_cavalry>
@@ -44,7 +44,7 @@
     <stone>30</stone>
     <iron>60</iron>
     <pop>1</pop>
-    <speed>18.0000000005</speed>
+    <speed>18.000000000504</speed>
     <attack>15</attack>
     <defense>50</defense>
     <defense_cavalry>40</defense_cavalry>

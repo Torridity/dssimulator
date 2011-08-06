@@ -14,10 +14,12 @@ import de.tor.tribes.dssim.io.SimIOHelper;
 import de.tor.tribes.dssim.model.SimulatorTableModel;
 import de.tor.tribes.dssim.types.AbstractUnitElement;
 import de.tor.tribes.dssim.types.UnitHolder;
+import java.awt.event.ItemEvent;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 
 /**
@@ -42,6 +44,8 @@ public class TroopsSaveDialog extends javax.swing.JDialog {
         setTitle("Deff speichern");
         type = SAVE_DEF_TYPE;
         jNameField.setText("MeineDeff");
+        jExistingSetups.setModel(new DefaultComboBoxModel(SimIOHelper.getDefSetups().toArray(new String[]{})));
+        //jExistingSetups.setSelectedIndex(0);
         setLocationRelativeTo(DSWorkbenchSimulatorFrame.getSingleton());
         setVisible(true);
     }
@@ -50,6 +54,8 @@ public class TroopsSaveDialog extends javax.swing.JDialog {
         setTitle("Off speichern");
         type = SAVE_OFF_TYPE;
         jNameField.setText("MeineOff");
+        jExistingSetups.setModel(new DefaultComboBoxModel(SimIOHelper.getOffSetups().toArray(new String[]{})));
+        //jExistingSetups.setSelectedIndex(0);
         setLocationRelativeTo(DSWorkbenchSimulatorFrame.getSingleton());
         setVisible(true);
     }
@@ -68,16 +74,39 @@ public class TroopsSaveDialog extends javax.swing.JDialog {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
         jLabel1 = new javax.swing.JLabel();
         jNameField = new javax.swing.JTextField();
         jSaveButton = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+        jExistingSetups = new javax.swing.JComboBox();
+        jLabel2 = new javax.swing.JLabel();
 
         setAlwaysOnTop(true);
         setModal(true);
+        getContentPane().setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setText("Bezeichnung");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        getContentPane().add(jLabel1, gridBagConstraints);
+
+        jNameField.setMinimumSize(new java.awt.Dimension(180, 25));
+        jNameField.setPreferredSize(new java.awt.Dimension(180, 25));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.ipadx = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        getContentPane().add(jNameField, gridBagConstraints);
 
         jSaveButton.setText("Speichern");
         jSaveButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -85,6 +114,13 @@ public class TroopsSaveDialog extends javax.swing.JDialog {
                 fireCloseEvent(evt);
             }
         });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        getContentPane().add(jSaveButton, gridBagConstraints);
 
         jButton2.setText("Abbrechen");
         jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -92,37 +128,39 @@ public class TroopsSaveDialog extends javax.swing.JDialog {
                 fireCloseEvent(evt);
             }
         });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHEAST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        getContentPane().add(jButton2, gridBagConstraints);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jNameField, javax.swing.GroupLayout.DEFAULT_SIZE, 182, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jButton2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSaveButton)))
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jSaveButton)
-                    .addComponent(jButton2))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        jExistingSetups.setMinimumSize(new java.awt.Dimension(180, 25));
+        jExistingSetups.setPreferredSize(new java.awt.Dimension(180, 25));
+        jExistingSetups.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                fireSetupChangedEvent(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        getContentPane().add(jExistingSetups, gridBagConstraints);
+
+        jLabel2.setText("Überschreiben");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        getContentPane().add(jLabel2, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -159,6 +197,12 @@ public class TroopsSaveDialog extends javax.swing.JDialog {
         setVisible(false);
     }//GEN-LAST:event_fireCloseEvent
 
+    private void fireSetupChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireSetupChangedEvent
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            jNameField.setText((String) jExistingSetups.getSelectedItem());
+        }
+    }//GEN-LAST:event_fireSetupChangedEvent
+
     /**
      * @param args the command line arguments
      */
@@ -177,10 +221,11 @@ public class TroopsSaveDialog extends javax.swing.JDialog {
             }
         });
     }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton2;
+    private javax.swing.JComboBox jExistingSetups;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JTextField jNameField;
     private javax.swing.JButton jSaveButton;
     // End of variables declaration//GEN-END:variables

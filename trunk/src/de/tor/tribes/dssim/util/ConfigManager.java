@@ -39,13 +39,32 @@ public class ConfigManager {
     public void parseConfig(String pServerID) throws Exception {
         try {
             Document d = JaxenUtils.getDocument(UnitManager.class.getResourceAsStream("/res/servers/config_" + pServerID + ".xml"));
-            setTech(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/tech")));
-            setFarmLimit(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/farm_limit")));
-            setKnightType(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight")));
-            setKnightNewItems(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight_new_items")));
-            setChurch(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/church")));
-            setSpyType(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/spy")));
+            try {
+                setTech(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/tech")));
+            } catch (Exception ignore) {
+            }
+            try {
+                setFarmLimit(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/farm_limit")));
+            } catch (Exception ignore) {
+            }
+            try {
+                setKnightType(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight")));
+            } catch (Exception ignore) {
+            }
+            try {
+                setKnightNewItems(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight_new_items")));
+            } catch (Exception ignore) {
+            }
+            try {
+                setChurch(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/church")));
+            } catch (Exception ignore) {
+            }
+            try {
+                setSpyType(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/spy")));
+            } catch (Exception ignore) {
+            }
         } catch (Exception outer) {
+            outer.printStackTrace();
             throw new Exception("Failed to load config for server '" + pServerID + "'", outer);
         }
     }

@@ -189,7 +189,7 @@ public class NewSimulator extends AbstractSimulator {
                 //if attacker does not believe, cata fight at half power
                 cataCount /= 2;
             }
-
+            int buildingDecrement = 0;
             if (!result.isWin()) {
                 //attack lost
                 double lostUnits = 0;
@@ -199,7 +199,6 @@ public class NewSimulator extends AbstractSimulator {
                     lostUnits += getDef().get(unit).getCount() - result.getSurvivingDef().get(unit).getCount();
                 }
                 double ratio = lostUnits / totalUnits;
-                int buildingDecrement = 0;
                 if (isCataChurch() && getBuildingLevel() <= 3) {
                     //cata is aiming at the church
                     buildingDecrement = (int) Math.round(getMaxChurchDestruction(cataCount * cataFactor * ratio) / 2);
@@ -220,7 +219,7 @@ public class NewSimulator extends AbstractSimulator {
 
                 double ratio = lostUnits / totalUnits;
                 double maxDecrement = 0.0;
-                int buildingDecrement = 0;
+
                 if (isCataChurch() && getBuildingLevel() <= 3) {
                     //cata is aiming at the church
                     maxDecrement = getMaxChurchDestruction(cataCount * cataFactor);
@@ -233,6 +232,9 @@ public class NewSimulator extends AbstractSimulator {
                 buildingAfter = getBuildingLevel() - buildingDecrement;
             }
             result.setBuildingLevel((buildingAfter <= 0) ? 0 : (int) buildingAfter);
+            if (pCataWall) {
+                result.setWallLevel(result.getWallLevel() - buildingDecrement);
+            }
         } else {
             //no demolishion
             result.setBuildingLevel(getBuildingLevel());
@@ -370,7 +372,7 @@ public class NewSimulator extends AbstractSimulator {
         System.out.println("  " + basicDefense[j]);
         }
         System.out.println("]");
-
+        
         System.out.println("WallAtFight: " + pWallAtFight);
         System.out.println("WallMulti: " + Math.pow(1.037, pWallAtFight));*/
         //</editor-fold>
