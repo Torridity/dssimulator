@@ -233,7 +233,8 @@ public class NewSimulator extends AbstractSimulator {
             }
             result.setBuildingLevel((buildingAfter <= 0) ? 0 : (int) buildingAfter);
             if (pCataWall) {
-                result.setWallLevel(result.getWallLevel() - buildingDecrement);
+                int wallResult = result.getWallLevel() - buildingDecrement;
+                result.setWallLevel(wallResult <= 0 ? 0 : wallResult);
             }
         } else {
             //no demolishion

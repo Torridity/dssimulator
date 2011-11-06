@@ -48,10 +48,7 @@ public abstract class AbstractSimulator {
        
         int cnt = 1;
         while (!result.isWin() && cnt <= 1000) {
-
-
             result = calculate(pOff, result.getSurvivingDef(), pOffItem, pDefItems, pNightBonus, pLuck, pMoral, result.getWallLevel(), result.getBuildingLevel(), pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm, pCataWall);
-
            /* if (pCataWall) {
                 int wallDecrement = result.getBuildingBefore() - result.getBuildingLevel();
                 result.setWallLevel(result.getWallBefore() - wallDecrement);
