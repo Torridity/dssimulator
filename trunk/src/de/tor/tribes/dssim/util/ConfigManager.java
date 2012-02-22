@@ -5,9 +5,15 @@
 package de.tor.tribes.dssim.util;
 
 import de.tor.tribes.dssim.types.UnitHolder;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import org.jdom.Document;
 import org.jdom.Element;
+import org.lorecraft.phparser.SerializedPhpParser;
 
 /**
  *
@@ -28,6 +34,7 @@ public class ConfigManager {
     private int knightNewItems = 0;
     private int church = 0;
     private int spyType = 10;
+    private LinkedHashMap<String, String> servers = null;
 
     public static synchronized ConfigManager getSingleton() {
         if (SINGLETON == null) {
@@ -36,9 +43,44 @@ public class ConfigManager {
         return SINGLETON;
     }
 
+    public void loadServers() throws Exception {
+        URLConnection con = new URL("http://www.die-staemme.de/backend/get_servers.php").openConnection();
+        InputStream isr = con.getInputStream();
+        int bytes = 0;
+        byte[] data = new byte[1024];
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        int sum = 0;
+        while (bytes != -1) {
+            if (bytes != -1) {
+                result.write(data, 0, bytes);
+            }
+
+            bytes = isr.read(data);
+            sum += bytes;
+            if (sum % 500 == 0) {
+                try {
+                    Thread.sleep(50);
+                } catch (Exception e) {
+                }
+            }
+        }
+        SerializedPhpParser serializedPhpParser = new SerializedPhpParser(result.toString());
+        Object obj = serializedPhpParser.parse();
+        servers = (LinkedHashMap<String, String>) obj;
+    }
+
+    public String[] getServers() {
+        return servers.keySet().toArray(new String[]{});
+    }
+
+    public String getServerURL(String pServerId) {
+        return servers.get(pServerId);
+    }
+
     public void parseConfig(String pServerID) throws Exception {
         try {
-            Document d = JaxenUtils.getDocument(UnitManager.class.getResourceAsStream("/res/servers/config_" + pServerID + ".xml"));
+            URLConnection con = new URL(getServerURL(pServerID) + "/interface.php?func=get_config").openConnection();
+            Document d = JaxenUtils.getDocument(con.getInputStream());
             try {
                 setTech(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/tech")));
             } catch (Exception ignore) {

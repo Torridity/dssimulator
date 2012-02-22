@@ -27,6 +27,7 @@ public class ImageManager {
     public final static int ICON_CATA = 9;
     public final static int ICON_KNIGHT = 10;
     public final static int ICON_SNOB = 11;
+    public final static int ICON_MILITIA = 12;
     private static final List<ImageIcon> UNIT_ICONS = new LinkedList<ImageIcon>();
 
     /**Load the icons of the units used for the animated unit movement on the MapPanel*/
@@ -44,6 +45,7 @@ public class ImageManager {
             UNIT_ICONS.add(new ImageIcon(ImageManager.class.getResource("/res/icons/cata.png")));
             UNIT_ICONS.add(new ImageIcon(ImageManager.class.getResource("/res/icons/knight.png")));
             UNIT_ICONS.add(new ImageIcon(ImageManager.class.getResource("/res/icons/snob.png")));
+            UNIT_ICONS.add(new ImageIcon(ImageManager.class.getResource("/res/icons/militia.png")));
         } catch (Exception e) {
             throw new Exception("Failed to load unit icons");
         }
@@ -77,6 +79,8 @@ public class ImageManager {
             return UNIT_ICONS.get(ICON_SNOB);
         } else if (pUnit.getPlainName().equals("knight")) {
             return UNIT_ICONS.get(ICON_KNIGHT);
+        } else if (pUnit.getPlainName().equals("militia")) {
+            return UNIT_ICONS.get(ICON_MILITIA);
         }
         //unknown unit
         return null;

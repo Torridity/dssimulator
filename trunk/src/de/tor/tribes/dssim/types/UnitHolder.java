@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package de.tor.tribes.dssim.types;
 
 import java.io.Serializable;
@@ -89,6 +88,24 @@ public class UnitHolder implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String[] getNames() {
+        if (getPlainName().equals("archer")) {
+            return new String[]{"Bogenschützen", getName()};
+        } else if (getPlainName().equals("marcher")) {
+            return new String[]{"Berittene Bogenschützen", getName()};
+        } else if (getPlainName().equals("ram")) {
+            return new String[]{"Rammen", getName()};
+        } else if (getPlainName().equals("catapult")) {
+            return new String[]{"Katapulte", getName()};
+        } else if (getPlainName().equals("knight")) {
+            return new String[]{"Paladine", getName()};
+        } else if (getPlainName().equals("snob")) {
+            return new String[]{"Adelsgeschlechter", getName()};
+        } else {
+            return new String[]{getName()};
+        }
     }
 
     public double getWood() {
