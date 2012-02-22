@@ -5,6 +5,9 @@
 package de.tor.tribes.dssim.util;
 
 import de.tor.tribes.dssim.types.UnitHolder;
+import java.io.File;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
 import org.jdom.Document;
@@ -26,11 +29,15 @@ public class UnitManager {
         return SINGLETON;
     }
 
-    /**Parse the list of units*/
-    public void parseUnits(String pServerID) throws Exception{
+    /**
+     * Parse the list of units
+     */
+    public void parseUnits(String pServerID) throws Exception {
         units.clear();
         try {
-            Document d = JaxenUtils.getDocument(UnitManager.class.getResourceAsStream("/res/servers/units_" + pServerID + ".xml"));
+            // Document d = JaxenUtils.getDocument(UnitManager.class.getResourceAsStream("/res/servers/units_" + pServerID + ".xml"));
+            URLConnection con = new URL(ConfigManager.getSingleton().getServerURL(pServerID) + "/interface.php?func=get_unit_info").openConnection();
+            Document d = JaxenUtils.getDocument(con.getInputStream());
             List<Element> l = JaxenUtils.getNodes(d, "/config/*");
             for (Element e : l) {
                 try {
@@ -44,7 +51,26 @@ public class UnitManager {
         }
     }
 
-    /**Get a unit by its name*/
+    public void setUnits(String pSettingsPath) throws Exception {
+        units.clear();
+        try {
+            Document d = JaxenUtils.getDocument(new File(pSettingsPath));
+            List<Element> l = JaxenUtils.getNodes(d, "/config/*");
+            for (Element e : l) {
+                try {
+                    units.add(new UnitHolder(e));
+                } catch (Exception inner) {
+                    inner.printStackTrace();
+                }
+            }
+        } catch (Exception outer) {
+            throw new Exception("Failed to load units from file " + pSettingsPath, outer);
+        }
+    }
+
+    /**
+     * Get a unit by its name
+     */
     public UnitHolder getUnitByPlainName(String pName) {
         for (UnitHolder u : units) {
             if (u.getPlainName().equals(pName)) {

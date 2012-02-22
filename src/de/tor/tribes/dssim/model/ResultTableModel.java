@@ -40,7 +40,7 @@ public class ResultTableModel extends AbstractTableModel {
     }
 
     public void setupModel() {
-        String[] ordered = new String[]{"", "spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob"};
+        String[] ordered = new String[]{"", "spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob", "militia"};
         List<String> columns = new LinkedList<String>();
         List<Class> classes = new LinkedList<Class>();
         columns.add("");
