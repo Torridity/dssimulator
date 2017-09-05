@@ -58,9 +58,10 @@ public class UnitHolder implements Serializable {
                 setName("Unbekannt (" + pElement.getName() + ")");
             }
 
-            setWood(Double.parseDouble(pElement.getChild("wood").getText()));
-            setStone(Double.parseDouble(pElement.getChild("stone").getText()));
-            setIron(Double.parseDouble(pElement.getChild("iron").getText()));
+           //Disabled due to missing information in unit_info
+           // setWood(Double.parseDouble(pElement.getChild("wood").getText()));
+           // setStone(Double.parseDouble(pElement.getChild("stone").getText()));
+           // setIron(Double.parseDouble(pElement.getChild("iron").getText()));
             setPop(Double.parseDouble(pElement.getChild("pop").getText()));
             setSpeed(Double.parseDouble(pElement.getChild("speed").getText()));
             setAttack(Double.parseDouble(pElement.getChild("attack").getText()));
