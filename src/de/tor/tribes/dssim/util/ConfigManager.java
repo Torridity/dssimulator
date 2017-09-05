@@ -4,16 +4,13 @@
  */
 package de.tor.tribes.dssim.util;
 
-import de.tor.tribes.dssim.types.UnitHolder;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import org.jdom.Document;
-import org.jdom.Element;
 import org.lorecraft.phparser.SerializedPhpParser;
 
 /**
@@ -36,6 +33,7 @@ public class ConfigManager {
     private int church = 0;
     private int spyType = 10;
     private LinkedHashMap<String, String> servers = null;
+    private Proxy webProxy = Proxy.NO_PROXY;
 
     public static synchronized ConfigManager getSingleton() {
         if (SINGLETON == null) {
@@ -44,8 +42,20 @@ public class ConfigManager {
         return SINGLETON;
     }
 
+    public void setWebPoxy(Proxy webProxy) {
+        this.webProxy = webProxy;
+    }
+
+    public Proxy getWebProxy() {
+        return webProxy;
+    }
+
     public void loadServers() throws Exception {
-        URLConnection con = new URL("http://www.die-staemme.de/backend/get_servers.php").openConnection();
+        loadServers(webProxy);
+    }
+
+    public void loadServers(Proxy webProxy) throws Exception {
+        URLConnection con = new URL("http://www.die-staemme.de/backend/get_servers.php").openConnection(webProxy);
         InputStream isr = con.getInputStream();
         int bytes = 0;
         byte[] data = new byte[1024];

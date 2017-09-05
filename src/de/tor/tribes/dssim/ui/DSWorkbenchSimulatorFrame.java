@@ -42,6 +42,7 @@ import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.KeyEvent;
 import java.io.*;
+import java.net.Proxy;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.*;
@@ -168,8 +169,13 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }
 
     public void showIntegratedVersion(String pServer) {
+        showIntegratedVersion(Proxy.NO_PROXY, pServer);
+    }
+
+    public void showIntegratedVersion(Proxy webProxy, String pServer) {
         jServerList.setSelectedItem(pServer);
         fireServerChangedEvent(null);
+        ConfigManager.getSingleton().setWebPoxy(webProxy);
         //setBaseFont((Font) UIManager.get("Label.font"));
         setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
         setTitle("A*Star");
