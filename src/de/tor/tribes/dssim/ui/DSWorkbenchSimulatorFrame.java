@@ -46,6 +46,9 @@ import java.net.Proxy;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static javafx.scene.input.KeyCode.L;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
@@ -64,6 +67,8 @@ import javax.swing.table.DefaultTableCellRenderer;
  * @author Charon
  */
 public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
+
+    private static Logger logger = Logger.getLogger("DSWorkbenchSimulatorFrame");
 
     private static DSWorkbenchSimulatorFrame SINGLETON = null;
     private final String SERVER_PROP = "default.server";
@@ -176,6 +181,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jServerList.setSelectedItem(pServer);
         fireServerChangedEvent(null);
         ConfigManager.getSingleton().setWebPoxy(webProxy);
+
         //setBaseFont((Font) UIManager.get("Label.font"));
         setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
         setTitle("A*Star");
@@ -287,14 +293,19 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
     private void buildServerList() {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
-
+        try {
+            ConfigManager.getSingleton().loadServers();
+            for (String server : ConfigManager.getSingleton().getServers()) {
+                model.addElement(server);
+            }
+            jServerList.setModel(model);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to load server list. Message: {0}", e.getMessage());
+        }
         /*
          * for (int i = 3; i <= 75; i++) { model.addElement("de" + i); }
          */
-        for (String server : ConfigManager.getSingleton().getServers()) {
-            model.addElement(server);
-        }
-        jServerList.setModel(model);
+
     }
 
     private void buildTables() {

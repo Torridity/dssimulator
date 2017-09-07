@@ -9,7 +9,9 @@ import java.io.InputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import org.jdom.Document;
 import org.lorecraft.phparser.SerializedPhpParser;
 
@@ -32,7 +34,7 @@ public class ConfigManager {
     private int knightNewItems = 0;
     private int church = 0;
     private int spyType = 10;
-    private LinkedHashMap<String, String> servers = null;
+    private Map<String, String> servers = new LinkedHashMap<>();
     private Proxy webProxy = Proxy.NO_PROXY;
 
     public static synchronized ConfigManager getSingleton() {
@@ -77,6 +79,7 @@ public class ConfigManager {
         }
         SerializedPhpParser serializedPhpParser = new SerializedPhpParser(result.toString());
         Object obj = serializedPhpParser.parse();
+        System.out.println("LOAD " + servers);
         servers = (LinkedHashMap<String, String>) obj;
     }
 
