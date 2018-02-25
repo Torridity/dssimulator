@@ -4,15 +4,10 @@
  */
 package de.tor.tribes.dssim.editor;
 
-import de.tor.tribes.dssim.types.UnitHolder;
-import de.tor.tribes.dssim.ui.DSWorkbenchSimulatorFrame;
-import de.tor.tribes.dssim.util.UnitManager;
 import java.awt.Component;
 import java.awt.Insets;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.util.HashMap;
-import java.util.StringTokenizer;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JTable;
 import javax.swing.JTextField;

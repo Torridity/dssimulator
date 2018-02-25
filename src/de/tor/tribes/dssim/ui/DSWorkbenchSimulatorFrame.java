@@ -23,7 +23,8 @@ import de.tor.tribes.dssim.model.SimulatorTableModel;
 import de.tor.tribes.dssim.renderer.MultiFunctionCellRenderer;
 import de.tor.tribes.dssim.renderer.TableHeaderRenderer;
 import de.tor.tribes.dssim.renderer.UnitTableCellRenderer;
-import de.tor.tribes.dssim.types.AbstractUnitElement;
+import de.tor.tribes.dssim.types.AbstractUnitElement;;
+import de.tor.tribes.dssim.types.EventListener;
 import de.tor.tribes.dssim.types.KnightItem;
 import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
@@ -31,16 +32,12 @@ import de.tor.tribes.dssim.util.AStarResultReceiver;
 import de.tor.tribes.dssim.util.ConfigManager;
 import de.tor.tribes.dssim.util.ImageManager;
 import de.tor.tribes.dssim.util.UnitManager;
-import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Point;
-import java.awt.Toolkit;
-import java.awt.event.AWTEventListener;
-import java.awt.event.KeyEvent;
 import java.io.*;
 import java.net.Proxy;
 import java.net.URL;
@@ -48,7 +45,39 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static javafx.scene.input.KeyCode.L;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;import de.tor.tribes.dssim.types.EventListener;
+import de.tor.tribes.dssim.types.KnightItem;
+import de.tor.tribes.dssim.types.SimulatorResult;
+import de.tor.tribes.dssim.types.UnitHolder;
+import de.tor.tribes.dssim.util.AStarResultReceiver;
+import de.tor.tribes.dssim.util.ConfigManager;
+import de.tor.tribes.dssim.util.ImageManager;
+import de.tor.tribes.dssim.util.UnitManager;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Point;
+import java.io.*;
+import java.net.Proxy;
+import java.net.URL;
+import java.text.NumberFormat;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
@@ -119,18 +148,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         }
 
         setTitle("A*Star - Attack Simulator for Tribal Wars v" + Constants.VERSION + Constants.VERSION_ADDITION);
-        Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
-
-            @Override
-            public void eventDispatched(AWTEvent event) {
-                if (((KeyEvent) event).getID() == KeyEvent.KEY_RELEASED) {
-                    KeyEvent e = (KeyEvent) event;
-                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                        //  fireCalculateEvent();
-                    }
-                }
-            }
-        }, AWTEvent.KEY_EVENT_MASK);
         try {
             ImageManager.loadUnitIcons();
         } catch (Exception e) {
@@ -155,19 +172,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             jSplitPane2.setDividerLocation(Integer.parseInt(mProperties.getProperty("split")));
         } catch (Exception e) {
         }
-
-        jOffKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-            public void valueChanged(ListSelectionEvent e) {
-                //  fireCalculateEvent();
-            }
-        });
-        jDefKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-            public void valueChanged(ListSelectionEvent e) {
-                // fireCalculateEvent();
-            }
-        });
 
         jAboutDialog.getContentPane().setBackground(Constants.DS_BACK);
         jAboutDialog.pack();
@@ -292,20 +296,22 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }
 
     private void buildServerList() {
-        DefaultComboBoxModel model = new DefaultComboBoxModel();
+        ConfigManager.getSingleton().addListener(new EventListener() {
+            @Override
+            public void fireEvent() {
+                DefaultComboBoxModel model = new DefaultComboBoxModel();
+                for (String server : ConfigManager.getSingleton().getServers()) {
+                    model.addElement(server);
+                }
+                jServerList.setModel(model);
+            }
+        });
+        
         try {
             ConfigManager.getSingleton().loadServers();
-            for (String server : ConfigManager.getSingleton().getServers()) {
-                model.addElement(server);
-            }
-            jServerList.setModel(model);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to load server list. Message: {0}", e.getMessage());
         }
-        /*
-         * for (int i = 3; i <= 75; i++) { model.addElement("de" + i); }
-         */
-
     }
 
     private void buildTables() {
@@ -1907,7 +1913,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         for (int i = 0; i < jResultTable.getColumnCount(); i++) {
             jResultTable.getColumn(jResultTable.getColumnName(i)).setHeaderRenderer(new UnitTableCellRenderer());
         }
-// </editor-fold>
+        // </editor-fold>
 
         // <editor-fold defaultstate="collapsed" desc=" Build result table rows">
         addResult(pResult);
@@ -1980,7 +1986,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                         } else {
                             ((JLabel) c).setBackground(Constants.WINNER_GREEN.darker());
                         }
-                        // } else if (row == 5 || row == 6 || row == 7) {
+                    //} else if (row == 5 || row == 6 || row == 7) {
                     } else if (ResultTableModel.getSingleton().isDefenderRow(row)) {
                         if (!isSelected) {
                             ((JLabel) c).setBackground(Constants.LOSER_RED);
@@ -1990,14 +1996,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                     }
 
                 } else {
-                    // if (row == 0 || row == 1 || row == 2) {
+                    //if (row == 0 || row == 1 || row == 2) {
                     if (ResultTableModel.getSingleton().isAttackerRow(row)) {
                         if (!isSelected) {
                             ((JLabel) c).setBackground(Constants.LOSER_RED);
                         } else {
                             ((JLabel) c).setBackground(Constants.LOSER_RED.darker());
                         }
-                        //} else if (row == 4 || row == 5 || row == 6) {
+                    //} else if (row == 4 || row == 5 || row == 6) {
                     } else if (ResultTableModel.getSingleton().isDefenderRow(row)) {
                         if (!isSelected) {
                             ((JLabel) c).setBackground(Constants.WINNER_GREEN);
@@ -2006,7 +2012,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                         }
                     }
                 }
-                //}
                 return c;
             }
         };
@@ -2064,7 +2069,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         //double defIron = 0;
         double defPop = 0;
         double defBash = 0;
-        int server = Integer.parseInt(mProperties.getProperty(SERVER_PROP).replaceAll("de", ""));
         for (int i = 1; i < ResultTableModel.getSingleton().getColumnCount(); i++) {
             UnitHolder u = UnitManager.getSingleton().getUnitByPlainName(ResultTableModel.getSingleton().getColumnName(i));
             AbstractUnitElement offElement = off.get(u);
@@ -2074,14 +2078,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             //attMud += u.getStone() * attackLoss;
             //attIron += u.getIron() * attackLoss;
             attPop += u.getPop() * attackLoss;
-            defBash += getDefBash(u, attackLoss, server);
+            defBash += getDefBash(u, attackLoss);
             //  attackerLosses.add(attackLoss);
             int defenderLoss = defElement.getCount() - pResult.getSurvivingDef().get(u).getCount();
             //defWood += u.getWood() * defenderLoss;
             //defMud += u.getStone() * defenderLoss;
             //defIron += u.getIron() * defenderLoss;
             defPop += u.getPop() * defenderLoss;
-            attBash += getAttBash(u, defenderLoss, server);
+            attBash += getAttBash(u, defenderLoss);
             //defenderLosses.add(defenderLoss);
         }
 
@@ -2117,7 +2121,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         //double defIron = 0;
         double defPop = 0;
         double defBash = 0;
-        int server = Integer.parseInt(mProperties.getProperty(SERVER_PROP).replaceAll("de", ""));
         for (Integer dataSetId : datasets) {
             SimulatorResult result = ResultTableModel.getSingleton().getResult(dataSetId);
             Enumeration<UnitHolder> keys = result.getOffBefore().keys();
@@ -2130,13 +2133,13 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 //attMud += u.getStone() * attackLoss;
                 //attIron += u.getIron() * attackLoss;
                 attPop += u.getPop() * attackLoss;
-                defBash += getDefBash(u, attackLoss, server);
+                defBash += getDefBash(u, attackLoss);
                 int defenderLoss = defElement.getCount() - result.getSurvivingDef().get(u).getCount();
                 //defWood += u.getWood() * defenderLoss;
                 //defMud += u.getStone() * defenderLoss;
                 //defIron += u.getIron() * defenderLoss;
                 defPop += u.getPop() * defenderLoss;
-                attBash += getAttBash(u, defenderLoss, server);
+                attBash += getAttBash(u, defenderLoss);
             }
         }
 
@@ -2155,68 +2158,65 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jDefenderBash.setText(nf.format(defBash));
     }
 
-    private int getDefBash(UnitHolder pUnit, int pCount, int pServer) {
-        if (pServer < 20) {
-            return pCount * (int) pUnit.getPop();
-        } else {
-            if (pUnit.getPlainName().equals("spear")) {
+    private int getDefBash(UnitHolder pUnit, int pCount) {
+        switch (pUnit.getPlainName()) {
+            case "spear":
                 return pCount * 1;
-            } else if (pUnit.getPlainName().equals("sword")) {
+            case "sword":
                 return pCount * 2;
-            } else if (pUnit.getPlainName().equals("axe")) {
+            case "axe":
                 return pCount * 4;
-            } else if (pUnit.getPlainName().equals("archer")) {
+            case "archer":
                 return pCount * 2;
-            } else if (pUnit.getPlainName().equals("spy")) {
+            case "spy":
                 return pCount * 2;
-            } else if (pUnit.getPlainName().equals("light")) {
+            case "light":
                 return pCount * 13;
-            } else if (pUnit.getPlainName().equals("marcher")) {
+            case "marcher":
                 return pCount * 12;
-            } else if (pUnit.getPlainName().equals("heavy")) {
+            case "heavy":
                 return pCount * 15;
-            } else if (pUnit.getPlainName().equals("ram")) {
+            case "ram":
                 return pCount * 8;
-            } else if (pUnit.getPlainName().equals("catapult")) {
+            case "catapult":
                 return pCount * 10;
-            } else if (pUnit.getPlainName().equals("knight")) {
+            case "knight":
                 return pCount * 20;
-            } else {
+            case "snob":
                 return pCount * 200;
-            }
+            default:
+                return pCount * 1;
         }
     }
 
-    private int getAttBash(UnitHolder pUnit, int pCount, int pServer) {
-
-        if (pServer < 20) {
-            return pCount * (int) pUnit.getPop();
-        } else {
-            if (pUnit.getPlainName().equals("spear")) {
+    private int getAttBash(UnitHolder pUnit, int pCount) {
+        switch (pUnit.getPlainName()) {
+            case "spear":
                 return pCount * 4;
-            } else if (pUnit.getPlainName().equals("sword")) {
+            case "sword":
                 return pCount * 5;
-            } else if (pUnit.getPlainName().equals("axe")) {
+            case "axe":
                 return pCount * 1;
-            } else if (pUnit.getPlainName().equals("archer")) {
+            case "archer":
                 return pCount * 5;
-            } else if (pUnit.getPlainName().equals("spy")) {
+            case "spy":
                 return pCount * 1;
-            } else if (pUnit.getPlainName().equals("light")) {
+            case "light":
                 return pCount * 5;
-            } else if (pUnit.getPlainName().equals("marcher")) {
+            case "marcher":
                 return pCount * 6;
-            } else if (pUnit.getPlainName().equals("heavy")) {
+            case "heavy":
                 return pCount * 23;
-            } else if (pUnit.getPlainName().equals("ram")) {
+            case "ram":
                 return pCount * 4;
-            } else if (pUnit.getPlainName().equals("catapult")) {
+            case "catapult":
                 return pCount * 12;
-            } else if (pUnit.getPlainName().equals("knight")) {
+            case "knight":
                 return pCount * 40;
-            } else {
+            case "snob":
                 return pCount * 200;
-            }
+            default:
+                return pCount * 1;
         }
     }
 
@@ -2254,7 +2254,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         try {
             ConfigManager.getSingleton().loadServers();
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            //  UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+            //UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
             java.awt.EventQueue.invokeLater(new Runnable() {
 
                 public void run() {
@@ -2270,21 +2270,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "A*Star konnte nicht gestartet werden. (Grund: " + t.getMessage() + ")");
             System.exit(1);
         }
-
-        // System.setProperty("http.proxyHost", "proxy.fzk.de");
-        //  System.setProperty("http.proxyPort", "8000");
-
-        /*
-         * for (int i = 3; i <= 75; i++) { System.out.println("Getting units from server de" + i); try {
-         *
-         * String config = "interface.php?func=get_config"; String unit = "interface.php?func=get_unit_info"; String url = "http://de" + i +
-         * ".die-staemme.de/" + config; URLConnection ucon = new URL(url).openConnection(); BufferedReader reader = new BufferedReader(new
-         * InputStreamReader(ucon.getInputStream())); FileWriter fout = new FileWriter("./src/res/servers/config_de" + i + ".xml"); String
-         * line = null; while ((line = reader.readLine()) != null) { fout.write(line + "\n"); } fout.flush(); fout.close();
-         * //"/interface.php?func=get_config" } catch (Exception e) { e.printStackTrace(); }
-         *
-         * }
-         */
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDialog jAboutDialog;
