@@ -4,13 +4,15 @@
  */
 package de.tor.tribes.dssim.util;
 
+import de.tor.tribes.dssim.types.EventListener;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.jdom.Document;
 import org.lorecraft.phparser.SerializedPhpParser;
@@ -36,6 +38,7 @@ public class ConfigManager {
     private int spyType = 10;
     private Map<String, String> servers = new LinkedHashMap<>();
     private Proxy webProxy = Proxy.NO_PROXY;
+    private List<EventListener> toNotify = new ArrayList<>();
 
     public static synchronized ConfigManager getSingleton() {
         if (SINGLETON == null) {
@@ -81,10 +84,19 @@ public class ConfigManager {
         Object obj = serializedPhpParser.parse();
         System.out.println("LOAD " + servers);
         servers = (LinkedHashMap<String, String>) obj;
+        fireAllEvents();
     }
 
     public String[] getServers() {
         return servers.keySet().toArray(new String[]{});
+    }
+
+    public void setServers(Map<String, String> pServers) {
+        servers.clear();
+        for (String id: pServers.keySet()) {
+            servers.put(id, pServers.get(id));
+        }
+        fireAllEvents();
     }
 
     public String getServerURL(String pServerId) {
@@ -207,5 +219,23 @@ public class ConfigManager {
      */
     public void setSpyType(int spyType) {
         this.spyType = spyType;
+    }
+
+    public void addListener(EventListener pListener) {
+        toNotify.add(pListener);
+    }
+    
+    public void removeListener(EventListener pListener) {
+        toNotify.remove(pListener);
+    }
+    
+    public void clearListeners() {
+        toNotify.clear();
+    }
+    
+    private void fireAllEvents() {
+        for (EventListener c : toNotify) {
+            c.fireEvent();
+        }
     }
 }
