@@ -6,15 +6,15 @@ package de.tor.tribes.dssim.io;
 
 import de.tor.tribes.dssim.types.AbstractUnitElement;
 import de.tor.tribes.dssim.types.UnitHolder;
-import de.tor.tribes.dssim.util.JaxenUtils;
+import de.tor.tribes.dssim.util.JDomUtils;
 import de.tor.tribes.dssim.util.UnitManager;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileWriter;
 import java.util.LinkedList;
 import java.util.List;
-import org.jdom.Document;
-import org.jdom.Element;
+import org.jdom2.Document;
+import org.jdom2.Element;
 
 /**
  *
@@ -34,14 +34,12 @@ public class SimIOHelper {
     }
 
     public static List<String> getOffSetups() {
-        List<String> result = new LinkedList<String>();
+        List<String> result = new LinkedList<>();
         File[] files = new File(getDataDir()).listFiles(new FileFilter() {
 
+            @Override
             public boolean accept(File pathname) {
-                if (pathname.getName().endsWith("_off.xml")) {
-                    return true;
-                }
-                return false;
+                return pathname.getName().endsWith("_off.xml");
             }
         });
 
@@ -53,14 +51,12 @@ public class SimIOHelper {
     }
 
     public static List<String> getDefSetups() {
-        List<String> result = new LinkedList<String>();
+        List<String> result = new LinkedList<>();
         File[] files = new File(getDataDir()).listFiles(new FileFilter() {
 
+            @Override
             public boolean accept(File pathname) {
-                if (pathname.getName().endsWith("_def.xml")) {
-                    return true;
-                }
-                return false;
+                return pathname.getName().endsWith("_def.xml");
             }
         });
 
@@ -72,23 +68,23 @@ public class SimIOHelper {
     }
 
     public static void writeTroopSetup(List<AbstractUnitElement> pTroops, String pFile) throws Exception {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append("<troopSetup>\n");
         for (AbstractUnitElement elem : pTroops) {
-            buffer.append("<unit name=\"" + elem.getUnit().getPlainName() + "\" tech=\"" + elem.getTech() + "\" count=\"" + elem.getCount() + "\"/>\n");
+            buffer.append("<unit name=\"").append(elem.getUnit().getPlainName()).append("\" tech=\"").append(elem.getTech()).append("\" count=\"").append(elem.getCount()).append("\"/>\n");
         }
         buffer.append("</troopSetup>\n");
-        FileWriter w = new FileWriter(new File(pFile));
-        w.write(buffer.toString());
-        w.flush();
-        w.close();
+        try (FileWriter w = new FileWriter(new File(pFile))) {
+            w.write(buffer.toString());
+            w.flush();
+        }
     }
 
     public static List<AbstractUnitElement> readTroopSetup(String pFile) throws Exception {
-        List<AbstractUnitElement> result = new LinkedList<AbstractUnitElement>();
+        List<AbstractUnitElement> result = new LinkedList<>();
 
-        Document doc = JaxenUtils.getDocument(new File(pFile));
-        for (Element unit : (List<Element>) JaxenUtils.getNodes(doc, "//troopSetup/unit")) {
+        Document doc = JDomUtils.getDocument(new File(pFile));
+        for (Element unit : (List<Element>) JDomUtils.getNodes(doc, "//troopSetup/unit")) {
             try {
                 String name = unit.getAttribute("name").getValue();
                 UnitHolder unitHolder = UnitManager.getSingleton().getUnitByPlainName(name);

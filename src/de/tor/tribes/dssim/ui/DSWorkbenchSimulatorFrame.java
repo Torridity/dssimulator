@@ -23,7 +23,7 @@ import de.tor.tribes.dssim.model.SimulatorTableModel;
 import de.tor.tribes.dssim.renderer.MultiFunctionCellRenderer;
 import de.tor.tribes.dssim.renderer.TableHeaderRenderer;
 import de.tor.tribes.dssim.renderer.UnitTableCellRenderer;
-import de.tor.tribes.dssim.types.AbstractUnitElement;;
+import de.tor.tribes.dssim.types.AbstractUnitElement;
 import de.tor.tribes.dssim.types.EventListener;
 import de.tor.tribes.dssim.types.KnightItem;
 import de.tor.tribes.dssim.types.SimulatorResult;
@@ -40,64 +40,22 @@ import java.awt.Font;
 import java.awt.Point;
 import java.io.*;
 import java.net.Proxy;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableCellRenderer;import de.tor.tribes.dssim.types.EventListener;
-import de.tor.tribes.dssim.types.KnightItem;
-import de.tor.tribes.dssim.types.SimulatorResult;
-import de.tor.tribes.dssim.types.UnitHolder;
-import de.tor.tribes.dssim.util.AStarResultReceiver;
-import de.tor.tribes.dssim.util.ConfigManager;
-import de.tor.tribes.dssim.util.ImageManager;
-import de.tor.tribes.dssim.util.UnitManager;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Point;
-import java.io.*;
-import java.net.Proxy;
-import java.net.URL;
-import java.text.NumberFormat;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Charon
  */
 public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
-    private static Logger logger = Logger.getLogger("DSWorkbenchSimulatorFrame");
+    private static Logger logger = LogManager.getLogger("DSWorkbenchSimulatorFrame");
 
     private static DSWorkbenchSimulatorFrame SINGLETON = null;
     private final String SERVER_PROP = "default.server";
@@ -125,6 +83,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         initComponents();
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     mProperties.put("width", Integer.toString(getWidth()));
@@ -192,11 +151,11 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         setVisible(true);
     }
 
-    public void insertValuesExternally(Hashtable<String, Double> pValues) {
+    public void insertValuesExternally(HashMap<String, Double> pValues) {
         insertValuesExternally(null, pValues, null);
     }
 
-    public void insertValuesExternally(Point pCoordinates, Hashtable<String, Double> pValues, AStarResultReceiver pReceiver) {
+    public void insertValuesExternally(Point pCoordinates, HashMap<String, Double> pValues, AStarResultReceiver pReceiver) {
         if (pCoordinates != null) {
             mCoordinates = new Point(pCoordinates);
         } else {
@@ -310,7 +269,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         try {
             ConfigManager.getSingleton().loadServers();
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to load server list. Message: {0}", e.getMessage());
+            logger.warn("Failed to load server list. Message: {0}", e.getMessage());
         }
     }
 
@@ -378,6 +337,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         //list selection listeners
         jOffKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 KnightItem item = (KnightItem) jOffKnightItemList.getSelectedValue();
                 if (item == null || item.getItemId() == KnightItem.ID_NO_ITEM) {
@@ -395,6 +355,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         });
         jDefKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 Object[] selection = jDefKnightItemList.getSelectedValues();
 
@@ -430,6 +391,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jResultTable.setRowSelectionAllowed(true);
         jResultTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 updateResultSelection();
             }
@@ -444,19 +406,15 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }
 
     public void updatePop() {
-        Hashtable<UnitHolder, AbstractUnitElement> troops = SimulatorTableModel.getSingleton().getOff();
-        Enumeration<UnitHolder> keys = troops.keys();
+        HashMap<UnitHolder, AbstractUnitElement> troops = SimulatorTableModel.getSingleton().getOff();
         int cnt = 0;
-        while (keys.hasMoreElements()) {
-            UnitHolder unit = keys.nextElement();
+        for(UnitHolder unit: troops.keySet()) {
             cnt += unit.getPop() * troops.get(unit).getCount();
         }
         jOffPop.setText(Integer.toString(cnt));
         troops = SimulatorTableModel.getSingleton().getDef();
-        keys = troops.keys();
         cnt = 0;
-        while (keys.hasMoreElements()) {
-            UnitHolder unit = keys.nextElement();
+        for(UnitHolder unit: troops.keySet()) {
             cnt += unit.getPop() * troops.get(unit).getCount();
         }
 
@@ -1682,18 +1640,17 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_fireNightBonusStateChangedEvent
 
     private void fireBombDefEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireBombDefEvent
-        Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
-        Hashtable<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
+        HashMap<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
+        HashMap<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
         boolean nightBonus = jNightBonus.isSelected();
         int wallLevel = (Integer) jWallSpinner.getValue();
         int cataTarget = (Integer) jCataTargetSpinner.getValue();
         boolean cataFarm = false;
         boolean cataChurch = false;
-        boolean cataWall = false;
+        boolean cataWall = jAimWall.isSelected();
         if (ConfigManager.getSingleton().isChurch()) {
             cataChurch = jAimChurch.isSelected();
         }
-        cataWall = jAimWall.isSelected();
         double luck = (Double) jLuckSpinner.getValue();
         double moral = (Integer) jMoralSpinner.getValue();
         int farmLevel = 0;
@@ -1711,7 +1668,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             defenderBelieve = jDefenderBelieve.isSelected();
         }
         //build knight item list
-        List<KnightItem> defItems = new LinkedList<KnightItem>();
+        List<KnightItem> defItems = new LinkedList<>();
 
         KnightItem offItem = (KnightItem) jOffKnightItemList.getSelectedValue();
         if (offItem == null) {
@@ -1761,6 +1718,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 SimulatorTableModel.getSingleton().setupModel();
                 SimulatorTableModel.getSingleton().addTableModelListener(new TableModelListener() {
 
+                    @Override
                     public void tableChanged(TableModelEvent e) {
                         updatePop();
                     }
@@ -1783,6 +1741,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 buildResultTable(new SimulatorResult());
                 mProperties.put(SERVER_PROP, serverID);
             } catch (Exception e) {
+                logger.error("Fehler beim Wechseln des Servers" ,e);
                 fireGlobalWarningEvent("Fehler beim Wechseln des Servers (Grund: " + e.getMessage() + ")");
             }
         }
@@ -1807,7 +1766,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().browse(new URL("http://www.dsworkbench.de/index.php?id=73").toURI());
             }
-        } catch (Exception e) {
+        } catch (URISyntaxException | IOException e) {
         }
 }//GEN-LAST:event_fireOpenHomepageEvent
 
@@ -1858,8 +1817,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }
 
     private void fireCalculateEvent() {
-        Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
-        Hashtable<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
+        HashMap<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
+        HashMap<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
         boolean nightBonus = jNightBonus.isSelected();
         boolean cataFarm = false;
         boolean cataChurch = false;
@@ -1887,7 +1846,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         }
 
         //build knight item list
-        List<KnightItem> defItems = new LinkedList<KnightItem>();
+        List<KnightItem> defItems = new LinkedList<>();
 
         KnightItem offItem = (KnightItem) jOffKnightItemList.getSelectedValue();
         if (offItem == null) {
@@ -2048,8 +2007,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }
 
     private void addResult(SimulatorResult pResult) {
-        Hashtable<UnitHolder, AbstractUnitElement> off = sim.getOff();
-        Hashtable<UnitHolder, AbstractUnitElement> def = sim.getDef();
+        HashMap<UnitHolder, AbstractUnitElement> off = sim.getOff();
+        HashMap<UnitHolder, AbstractUnitElement> def = sim.getDef();
         pResult.setOffBefore(off);
         pResult.setDefBefore(def);
         pResult.setWallBefore((Integer) jWallSpinner.getValue());
@@ -2123,23 +2082,21 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         double defBash = 0;
         for (Integer dataSetId : datasets) {
             SimulatorResult result = ResultTableModel.getSingleton().getResult(dataSetId);
-            Enumeration<UnitHolder> keys = result.getOffBefore().keys();
-            while (keys.hasMoreElements()) {
-                UnitHolder u = keys.nextElement();
-                AbstractUnitElement offElement = result.getOffBefore().get(u);
-                AbstractUnitElement defElement = result.getDefBefore().get(u);
-                int attackLoss = offElement.getCount() - result.getSurvivingOff().get(u).getCount();
+            for(UnitHolder unit: result.getOffBefore().keySet()) {
+                AbstractUnitElement offElement = result.getOffBefore().get(unit);
+                AbstractUnitElement defElement = result.getDefBefore().get(unit);
+                int attackLoss = offElement.getCount() - result.getSurvivingOff().get(unit).getCount();
                 //attWood += u.getWood() * attackLoss;
                 //attMud += u.getStone() * attackLoss;
                 //attIron += u.getIron() * attackLoss;
-                attPop += u.getPop() * attackLoss;
-                defBash += getDefBash(u, attackLoss);
-                int defenderLoss = defElement.getCount() - result.getSurvivingDef().get(u).getCount();
+                attPop += unit.getPop() * attackLoss;
+                defBash += getDefBash(unit, attackLoss);
+                int defenderLoss = defElement.getCount() - result.getSurvivingDef().get(unit).getCount();
                 //defWood += u.getWood() * defenderLoss;
                 //defMud += u.getStone() * defenderLoss;
                 //defIron += u.getIron() * defenderLoss;
-                defPop += u.getPop() * defenderLoss;
-                attBash += getAttBash(u, defenderLoss);
+                defPop += unit.getPop() * defenderLoss;
+                attBash += getAttBash(unit, defenderLoss);
             }
         }
 
@@ -2223,7 +2180,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private Integer[] getSelectedDataSets() {
 
         int[] rows = jResultTable.getSelectedRows();
-        List<Integer> selection = new LinkedList<Integer>();
+        List<Integer> selection = new LinkedList<>();
         for (int row : rows) {
             int ds = ResultTableModel.getSingleton().getDataSetNumberForRow(row);
             if (!selection.contains(ds)) {
@@ -2257,6 +2214,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             //UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
             java.awt.EventQueue.invokeLater(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         DSWorkbenchSimulatorFrame.getSingleton().setVisible(true);

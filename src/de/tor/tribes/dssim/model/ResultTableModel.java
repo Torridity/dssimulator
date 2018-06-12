@@ -25,7 +25,7 @@ public class ResultTableModel extends AbstractTableModel {
 
     ResultTableModel() {
         setupModel();
-        data = new LinkedList<SimulatorResult>();
+        data = new LinkedList<>();
     }
 
     public static synchronized ResultTableModel getSingleton() {
@@ -41,8 +41,8 @@ public class ResultTableModel extends AbstractTableModel {
 
     public void setupModel() {
         String[] ordered = new String[]{"", "spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob", "militia"};
-        List<String> columns = new LinkedList<String>();
-        List<Class> classes = new LinkedList<Class>();
+        List<String> columns = new LinkedList<>();
+        List<Class> classes = new LinkedList<>();
         columns.add("");
         classes.add(String.class);
         for (String col : ordered) {

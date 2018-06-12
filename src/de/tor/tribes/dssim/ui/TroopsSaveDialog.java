@@ -15,8 +15,7 @@ import de.tor.tribes.dssim.model.SimulatorTableModel;
 import de.tor.tribes.dssim.types.AbstractUnitElement;
 import de.tor.tribes.dssim.types.UnitHolder;
 import java.awt.event.ItemEvent;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.DefaultComboBoxModel;
@@ -172,7 +171,7 @@ public class TroopsSaveDialog extends javax.swing.JDialog {
                 JOptionPane.showMessageDialog(this, "Ungültige Bezeichnung.", "Fehler", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            Hashtable<UnitHolder, AbstractUnitElement> toSave = null;
+            HashMap<UnitHolder, AbstractUnitElement> toSave;
             if (type == SAVE_OFF_TYPE) {
                 //save off
                 name = name + "_off.xml";
@@ -182,10 +181,9 @@ public class TroopsSaveDialog extends javax.swing.JDialog {
                 name = name + "_def.xml";
                 toSave = SimulatorTableModel.getSingleton().getDef();
             }
-            Enumeration<UnitHolder> keys = toSave.keys();
-            List<AbstractUnitElement> elements = new LinkedList<AbstractUnitElement>();
-            while (keys.hasMoreElements()) {
-                elements.add(toSave.get(keys.nextElement()));
+            List<AbstractUnitElement> elements = new LinkedList<>();
+            for(UnitHolder unit: toSave.keySet()) {
+                elements.add(toSave.get(unit));
             }
             try {
                 SimIOHelper.writeTroopSetup(elements, SimIOHelper.getDataDir() + "/" + name);
@@ -209,10 +207,12 @@ public class TroopsSaveDialog extends javax.swing.JDialog {
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
+            @Override
             public void run() {
                 TroopsSaveDialog dialog = new TroopsSaveDialog(new javax.swing.JFrame(), true);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
 
+                    @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
                         System.exit(0);
                     }

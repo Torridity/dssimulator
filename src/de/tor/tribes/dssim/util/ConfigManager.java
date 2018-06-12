@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.jdom.Document;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jdom2.Document;
 import org.lorecraft.phparser.SerializedPhpParser;
 
 /**
@@ -22,6 +24,8 @@ import org.lorecraft.phparser.SerializedPhpParser;
  * @author Jejkal
  */
 public class ConfigManager {
+    
+    private static Logger logger = LogManager.getLogger("ConfigManager");
 
     public final static int ID_TECH_10 = 0;
     public final static int ID_TECH_3 = 1;
@@ -65,20 +69,12 @@ public class ConfigManager {
         int bytes = 0;
         byte[] data = new byte[1024];
         ByteArrayOutputStream result = new ByteArrayOutputStream();
-        int sum = 0;
         while (bytes != -1) {
             if (bytes != -1) {
                 result.write(data, 0, bytes);
             }
 
             bytes = isr.read(data);
-            sum += bytes;
-            if (sum % 500 == 0) {
-                try {
-                    Thread.sleep(50);
-                } catch (Exception e) {
-                }
-            }
         }
         SerializedPhpParser serializedPhpParser = new SerializedPhpParser(result.toString());
         Object obj = serializedPhpParser.parse();
@@ -106,33 +102,32 @@ public class ConfigManager {
     public void parseConfig(String pServerID) throws Exception {
         try {
             URLConnection con = new URL(getServerURL(pServerID) + "/interface.php?func=get_config").openConnection();
-            Document d = JaxenUtils.getDocument(con.getInputStream());
+            Document d = JDomUtils.getDocument(con.getInputStream());
             try {
-                setTech(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/tech")));
+                setTech(Integer.parseInt(JDomUtils.getNodeValue(d, "game/tech")));
             } catch (Exception ignore) {
             }
             try {
-                setFarmLimit(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/farm_limit")));
+                setFarmLimit(Integer.parseInt(JDomUtils.getNodeValue(d, "game/farm_limit")));
             } catch (Exception ignore) {
             }
             try {
-                setKnightType(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight")));
+                setKnightType(Integer.parseInt(JDomUtils.getNodeValue(d, "game/knight")));
             } catch (Exception ignore) {
             }
             try {
-                setKnightNewItems(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/knight_new_items")));
+                setKnightNewItems(Integer.parseInt(JDomUtils.getNodeValue(d, "game/knight_new_items")));
             } catch (Exception ignore) {
             }
             try {
-                setChurch(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/church")));
+                setChurch(Integer.parseInt(JDomUtils.getNodeValue(d, "game/church")));
             } catch (Exception ignore) {
             }
             try {
-                setSpyType(Integer.parseInt(JaxenUtils.getNodeValue(d, "/config/game/spy")));
+                setSpyType(Integer.parseInt(JDomUtils.getNodeValue(d, "game/spy")));
             } catch (Exception ignore) {
             }
         } catch (Exception outer) {
-            outer.printStackTrace();
             throw new Exception("Failed to load config for server '" + pServerID + "'", outer);
         }
     }

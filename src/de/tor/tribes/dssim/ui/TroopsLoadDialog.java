@@ -16,7 +16,7 @@ import de.tor.tribes.dssim.types.AbstractUnitElement;
 import de.tor.tribes.dssim.types.UnitHolder;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
@@ -182,7 +182,7 @@ public class TroopsLoadDialog extends javax.swing.JDialog {
             List<AbstractUnitElement> elements = null;
             try {
                 elements = SimIOHelper.readTroopSetup(SimIOHelper.getDataDir() + "/" + name);
-                Hashtable<UnitHolder, AbstractUnitElement> setup = new Hashtable<UnitHolder, AbstractUnitElement>();
+                HashMap<UnitHolder, AbstractUnitElement> setup = new HashMap<>();
                 for (AbstractUnitElement element : elements) {
                     setup.put(element.getUnit(), element);
                 }

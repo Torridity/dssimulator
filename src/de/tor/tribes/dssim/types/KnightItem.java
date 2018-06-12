@@ -5,7 +5,7 @@
 package de.tor.tribes.dssim.types;
 
 import de.tor.tribes.dssim.util.ConfigManager;
-import java.util.Hashtable;
+import java.util.HashMap;
 
 /**
  *
@@ -26,7 +26,7 @@ public class KnightItem {
     public static final int ID_CATA = 10;
     public static final int ID_SNOB = 11;
     private int itemID = ID_SPEAR;
-    private static Hashtable<Integer, String> nameMappings = new Hashtable<Integer, String>();
+    private static HashMap<Integer, String> nameMappings = new HashMap<>();
 
 
     static {
