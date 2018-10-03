@@ -13,6 +13,9 @@ import java.io.FileFilter;
 import java.io.FileWriter;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
@@ -21,6 +24,7 @@ import org.jdom2.Element;
  * @author Charon
  */
 public class SimIOHelper {
+    private static final Logger logger = LogManager.getLogger("SimIOHelper");
 
     static {
         String userDir = System.getProperty("user.home");
@@ -68,23 +72,29 @@ public class SimIOHelper {
     }
 
     public static void writeTroopSetup(List<AbstractUnitElement> pTroops, String pFile) throws Exception {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("<troopSetup>\n");
+        logger.debug("Starting saving");
+        
+        Document doc = JDomUtils.createDocument();
+        Element root = doc.getRootElement();
+        
         for (AbstractUnitElement elem : pTroops) {
-            buffer.append("<unit name=\"").append(elem.getUnit().getPlainName()).append("\" tech=\"").append(elem.getTech()).append("\" count=\"").append(elem.getCount()).append("\"/>\n");
+            Element unit = new Element("unit");
+            unit.setAttribute(new Attribute("name", elem.getUnit().getPlainName()));
+            unit.setAttribute(new Attribute("tech", Integer.toString(elem.getTech())));
+            unit.setAttribute(new Attribute("count", Integer.toString(elem.getCount())));
+            root.addContent(unit);
         }
-        buffer.append("</troopSetup>\n");
-        try (FileWriter w = new FileWriter(new File(pFile))) {
-            w.write(buffer.toString());
-            w.flush();
-        }
+        
+        logger.debug("Writing file {}", pFile);
+        JDomUtils.saveDocument(doc, pFile);
+        logger.debug("Finished");
     }
 
     public static List<AbstractUnitElement> readTroopSetup(String pFile) throws Exception {
         List<AbstractUnitElement> result = new LinkedList<>();
 
         Document doc = JDomUtils.getDocument(new File(pFile));
-        for (Element unit : (List<Element>) JDomUtils.getNodes(doc, "//troopSetup/unit")) {
+        for (Element unit : (List<Element>) JDomUtils.getNodes(doc, "unit")) {
             try {
                 String name = unit.getAttribute("name").getValue();
                 UnitHolder unitHolder = UnitManager.getSingleton().getUnitByPlainName(name);

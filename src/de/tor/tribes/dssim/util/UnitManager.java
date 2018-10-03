@@ -10,6 +10,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
@@ -18,6 +20,7 @@ import org.jdom2.Element;
  * @author Charon
  */
 public class UnitManager {
+    private static Logger logger = LogManager.getLogger("SimUnitManager");
 
     private static List<UnitHolder> units = new LinkedList<>();
     private static UnitManager SINGLETON = null;
@@ -38,7 +41,7 @@ public class UnitManager {
             // Document d = JaxenUtils.getDocument(UnitManager.class.getResourceAsStream("/res/servers/units_" + pServerID + ".xml"));
             URLConnection con = new URL(ConfigManager.getSingleton().getServerURL(pServerID) + "/interface.php?func=get_unit_info").openConnection();
             Document d = JDomUtils.getDocument(con.getInputStream());
-            List<Element> l = JDomUtils.getNodes(d, "/config/*");
+            List<Element> l = JDomUtils.getNodes(d, null);
             for (Element e : l) {
                 try {
                     units.add(new UnitHolder(e));
@@ -55,7 +58,7 @@ public class UnitManager {
         units.clear();
         try {
             Document d = JDomUtils.getDocument(new File(pSettingsPath));
-            List<Element> l = JDomUtils.getNodes(d, "/config/*");
+            List<Element> l = JDomUtils.getNodes(d, null);
             for (Element e : l) {
                 try {
                     units.add(new UnitHolder(e));

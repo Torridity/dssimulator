@@ -25,7 +25,7 @@ import org.lorecraft.phparser.SerializedPhpParser;
  */
 public class ConfigManager {
     
-    private static Logger logger = LogManager.getLogger("ConfigManager");
+    private static Logger logger = LogManager.getLogger("SimConfigManager");
 
     public final static int ID_TECH_10 = 0;
     public final static int ID_TECH_3 = 1;
@@ -80,6 +80,16 @@ public class ConfigManager {
         Object obj = serializedPhpParser.parse();
         System.out.println("LOAD " + servers);
         servers = (LinkedHashMap<String, String>) obj;
+        
+        if(logger.isDebugEnabled()) {
+            StringBuilder log = new StringBuilder();
+            log.append("Found:");
+            for(String s:servers.keySet()) {
+                log.append(" ").append(s);
+            }
+            logger.debug(log);
+        }
+        
         fireAllEvents();
     }
 

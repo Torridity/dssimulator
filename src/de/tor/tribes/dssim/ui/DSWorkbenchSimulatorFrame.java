@@ -55,7 +55,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
-    private static Logger logger = LogManager.getLogger("DSWorkbenchSimulatorFrame");
+    private static Logger logger = LogManager.getLogger("SimFrame");
 
     private static DSWorkbenchSimulatorFrame SINGLETON = null;
     private final String SERVER_PROP = "default.server";
@@ -593,8 +593,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
-                    .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
-                    .addComponent(jLabel12, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
+                    .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 560, Short.MAX_VALUE)
+                    .addComponent(jLabel12, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 560, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
@@ -970,7 +970,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jAttackerBelieve.setSelected(true);
         jAttackerBelieve.setText("Gläubig");
         jAttackerBelieve.setToolTipText("Angreifer ist gläubig");
-        jAttackerBelieve.setOpaque(false);
         jAttackerBelieve.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 fireBelieveChangedEvent(evt);
@@ -987,7 +986,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jDefenderBelieve.setSelected(true);
         jDefenderBelieve.setText("Gläubig");
         jDefenderBelieve.setToolTipText("Verteidiger ist gläubig");
-        jDefenderBelieve.setOpaque(false);
         jDefenderBelieve.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 fireBelieveChangedEvent(evt);
@@ -1089,7 +1087,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jAimWall.setMargin(new java.awt.Insets(2, 0, 2, 2));
         jAimWall.setMaximumSize(new java.awt.Dimension(18, 18));
         jAimWall.setMinimumSize(new java.awt.Dimension(18, 18));
-        jAimWall.setOpaque(false);
         jAimWall.setPreferredSize(new java.awt.Dimension(18, 18));
         jAimWall.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1163,7 +1160,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jAimChurch.setMargin(new java.awt.Insets(2, 0, 2, 2));
         jAimChurch.setMaximumSize(new java.awt.Dimension(18, 18));
         jAimChurch.setMinimumSize(new java.awt.Dimension(18, 18));
-        jAimChurch.setOpaque(false);
         jAimChurch.setPreferredSize(new java.awt.Dimension(18, 18));
         jAimChurch.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1303,7 +1299,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jNightBonus.setMargin(new java.awt.Insets(2, 0, 2, 2));
         jNightBonus.setMaximumSize(new java.awt.Dimension(100, 25));
         jNightBonus.setMinimumSize(new java.awt.Dimension(100, 25));
-        jNightBonus.setOpaque(false);
         jNightBonus.setPreferredSize(new java.awt.Dimension(100, 25));
         jNightBonus.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/moon.png"))); // NOI18N
         jNightBonus.addItemListener(new java.awt.event.ItemListener() {
@@ -1710,9 +1705,11 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private void fireServerChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireServerChangedEvent
         if (evt == null || evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
             try {
+                logger.debug("reading server settings");
                 String serverID = (String) jServerList.getSelectedItem();
                 ConfigManager.getSingleton().parseConfig(serverID);
                 UnitManager.getSingleton().parseUnits(serverID);
+                logger.debug("setting up UI");
                 SimulatorTableModel.getSingleton().reset();
                 ResultTableModel.getSingleton().reset();
                 SimulatorTableModel.getSingleton().setupModel();
@@ -1737,9 +1734,11 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 jAttackerBelieve.setEnabled(ConfigManager.getSingleton().isChurch());
                 jDefenderBelieve.setEnabled(ConfigManager.getSingleton().isChurch());
                 jAimChurch.setEnabled(ConfigManager.getSingleton().isChurch());
+                logger.debug("setting up tables");
                 buildTables();
                 buildResultTable(new SimulatorResult());
                 mProperties.put(SERVER_PROP, serverID);
+                logger.debug("finished server change");
             } catch (Exception e) {
                 logger.error("Fehler beim Wechseln des Servers" ,e);
                 fireGlobalWarningEvent("Fehler beim Wechseln des Servers (Grund: " + e.getMessage() + ")");
@@ -2207,8 +2206,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-
         try {
+            logger.debug("loading servers");
             ConfigManager.getSingleton().loadServers();
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             //UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
