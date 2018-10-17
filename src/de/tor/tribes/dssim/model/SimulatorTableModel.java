@@ -18,12 +18,18 @@ import javax.swing.table.DefaultTableModel;
 public class SimulatorTableModel extends DefaultTableModel {
 
     private static SimulatorTableModel SINGLETON = null;
-    private Class[] columnClasses = columnClasses = new Class[]{Object.class, String.class, Integer.class, Double.class, Object.class, Integer.class, Double.class, Object.class};
-    private String[] columnNames = new String[]{"", "Einheit", "Angreifer", "Tech", "", "Verteidiger", "Tech", ""};
+    private Class[] columnClasses;
+    private String[] columnNames;
 
     SimulatorTableModel() {
         super();
-        setupModel();
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
+            columnNames = new String[]{"", "Einheit", "Angreifer", "", "Verteidiger", ""};
+            columnClasses = new Class[]{Object.class, String.class, Integer.class, Object.class, Integer.class, Object.class};
+        } else {
+            columnNames = new String[]{"", "Einheit", "Angreifer", "Tech", "", "Verteidiger", "Tech", ""};
+            columnClasses = new Class[]{Object.class, String.class, Integer.class, Double.class, Object.class, Integer.class, Double.class, Object.class};
+        }
     }
 
     public static synchronized SimulatorTableModel getSingleton() {
@@ -35,16 +41,6 @@ public class SimulatorTableModel extends DefaultTableModel {
 
     public void reset() {
         SINGLETON = null;
-    }
-
-    public void setupModel() {
-        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
-            columnNames = new String[]{"", "Einheit", "Angreifer", "", "Verteidiger", ""};
-            columnClasses = new Class[]{Object.class, String.class, Integer.class, Object.class, Integer.class, Object.class};
-        } else {
-            columnNames = new String[]{"", "Einheit", "Angreifer", "Tech", "", "Verteidiger", "Tech", ""};
-            columnClasses = new Class[]{Object.class, String.class, Integer.class, Double.class, Object.class, Integer.class, Double.class, Object.class};
-        }
     }
 
     @Override

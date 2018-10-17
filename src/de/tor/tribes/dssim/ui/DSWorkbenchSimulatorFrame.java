@@ -1712,15 +1712,12 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 logger.debug("setting up UI");
                 SimulatorTableModel.getSingleton().reset();
                 ResultTableModel.getSingleton().reset();
-                SimulatorTableModel.getSingleton().setupModel();
                 SimulatorTableModel.getSingleton().addTableModelListener(new TableModelListener() {
-
                     @Override
                     public void tableChanged(TableModelEvent e) {
                         updatePop();
                     }
                 });
-                ResultTableModel.getSingleton().setupModel();
                 if (UnitManager.getSingleton().getUnitByPlainName("archer") != null) {
                     sim = new NewSimulator();
                     lastResult = null;
@@ -1763,7 +1760,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private void fireOpenHomepageEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireOpenHomepageEvent
         try {
             if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().browse(new URL("http://www.dsworkbench.de/index.php?id=73").toURI());
+                Desktop.getDesktop().browse(new URL("https://forum.die-staemme.de/index.php?threads/ds-workbench.80831/").toURI());
             }
         } catch (URISyntaxException | IOException e) {
         }
@@ -1878,99 +1875,86 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         // </editor-fold>
 
         // <editor-fold defaultstate="collapsed" desc="Winner/Loser color renderer">
-        //final boolean won = pResult.isWin();
         DefaultTableCellRenderer winLossRenderer = new DefaultTableCellRenderer() {
-
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = new DefaultTableCellRenderer().getTableCellRendererComponent(table, value, isSelected, hasFocus, row, row);
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                JLabel l;
+                try {
+                    l = (JLabel) c;
+                } catch(ClassCastException e) {
+                    logger.debug("Exeption happend: ", e);
+                    return c;
+                }
+                
                 if (!isSelected) {
-                    c.setBackground(Constants.DS_BACK);
+                    l.setBackground(Constants.DS_BACK);
                 } else {
-                    c.setBackground(Constants.DS_BACK.darker());
+                    l.setBackground(Constants.DS_BACK.darker());
                 }
                 int dataSet = ResultTableModel.getSingleton().getDataSetNumberForRow(row);
                 boolean won = ResultTableModel.getSingleton().getResult(dataSet).isWin();
-                if (table.getValueAt(row, 0) == null) {
+                if (table.getValueAt(row, 0).equals("")) {
                     if (!isSelected) {
-                        c.setBackground(Color.LIGHT_GRAY);
+                        l.setBackground(Constants.DS_BACK_LIGHT);
                     } else {
-                        c.setBackground(Color.LIGHT_GRAY.darker());
-                    }
-                } else if (table.getValueAt(row, 0).equals("")) {
-                    if (!isSelected) {
-                        c.setBackground(Constants.DS_BACK_LIGHT);
-                    } else {
-                        c.setBackground(Constants.DS_BACK_LIGHT.darker());
+                        l.setBackground(Constants.DS_BACK_LIGHT.darker());
                     }
                 } else {
-                    try {
-                        String v = (String) table.getValueAt(row, 0);
-                        jResultTable.setShowVerticalLines(false);
-                        if (v.startsWith("Ergebnis")) {
-                            ((JLabel) c).setBorder(BorderFactory.createEmptyBorder());
-                        } else {
-                            ((JLabel) c).setBorder(BorderFactory.createLineBorder(Constants.DS_BACK, 1));
-                        }
-                    } catch (Exception e) {
+                    String v = (String) table.getValueAt(row, 0);
+                    if (v.startsWith("Ergebnis")) {
+                        l.setBorder(BorderFactory.createEmptyBorder());
+                    } else {
+                        l.setBorder(BorderFactory.createLineBorder(Constants.DS_BACK, 1));
                     }
                 }
 
-                ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
-                try {
-                    ((JLabel) c).setText(Integer.toString((Integer) value));
-                } catch (Exception e) {
-                    ((JLabel) c).setText((String) value);
-                    try {
-                        if (((JLabel) c).getText().startsWith("Ergebnis")) {
-                            ((JLabel) c).setText("<html><b>" + ((JLabel) c).getText() + "</b></html>");
-                        } else if (((JLabel) c).getText().equals("Wall")) {
-                            ((JLabel) c).setText("");
-                            ((JLabel) c).setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/wall.png")));
-                        } else if (((JLabel) c).getText().equals("Gebäude")) {
-                            ((JLabel) c).setText("");
-                            ((JLabel) c).setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/main.png")));
-                        }
-                    } catch (Exception inner) {
+                l.setHorizontalAlignment(SwingConstants.CENTER);
+                if(value instanceof Integer) {
+                    l.setText(Integer.toString((Integer) value));
+                    l.setIcon(null);
+                }
+                else if(value instanceof String) {
+                    String data = (String) value;
+                    if (data.startsWith("Ergebnis")) {
+                        l.setText("<html><b>" + data + "</b></html>");
+                        l.setIcon(null);
+                    } else if (data.equals("Wall")) {
+                        l.setText("");
+                        l.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/wall.png")));
+                    } else if (data.equals("Gebäude")) {
+                        l.setText("");
+                        l.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/main.png")));
+                    } else {
+                        l.setText(data);
+                        l.setIcon(null);
                     }
                 }
-                //if (!isSelected) {
-                row -= dataSet * 9;
-                if (won) {
-                    //if (row == 1 || row == 2 || row == 3) {
-                    if (ResultTableModel.getSingleton().isAttackerRow(row)) {
-                        if (!isSelected) {
-                            ((JLabel) c).setBackground(Constants.WINNER_GREEN);
-                        } else {
-                            ((JLabel) c).setBackground(Constants.WINNER_GREEN.darker());
-                        }
-                    //} else if (row == 5 || row == 6 || row == 7) {
-                    } else if (ResultTableModel.getSingleton().isDefenderRow(row)) {
-                        if (!isSelected) {
-                            ((JLabel) c).setBackground(Constants.LOSER_RED);
-                        } else {
-                            ((JLabel) c).setBackground(Constants.LOSER_RED.darker());
-                        }
-                    }
 
-                } else {
-                    //if (row == 0 || row == 1 || row == 2) {
-                    if (ResultTableModel.getSingleton().isAttackerRow(row)) {
-                        if (!isSelected) {
-                            ((JLabel) c).setBackground(Constants.LOSER_RED);
-                        } else {
-                            ((JLabel) c).setBackground(Constants.LOSER_RED.darker());
-                        }
-                    //} else if (row == 4 || row == 5 || row == 6) {
-                    } else if (ResultTableModel.getSingleton().isDefenderRow(row)) {
-                        if (!isSelected) {
-                            ((JLabel) c).setBackground(Constants.WINNER_GREEN);
-                        } else {
-                            ((JLabel) c).setBackground(Constants.WINNER_GREEN.darker());
-                        }
+                Color bg;
+                if (ResultTableModel.getSingleton().isAttackerRow(row)) {
+                    if (won) {
+                        bg = Constants.WINNER_GREEN;
+                    } else {
+                        bg = Constants.LOSER_RED;
                     }
+                } else if (ResultTableModel.getSingleton().isDefenderRow(row)) {
+                    if (won) {
+                        bg = Constants.LOSER_RED;
+                    } else {
+                        bg = Constants.WINNER_GREEN;
+                    }
+                } else {
+                    bg = null;
                 }
-                return c;
+
+                if(bg != null)
+                    if(!isSelected)
+                        l.setBackground(bg);
+                    else
+                        l.setBackground(bg.darker());
+
+                return l;
             }
         };
         // </editor-fold>

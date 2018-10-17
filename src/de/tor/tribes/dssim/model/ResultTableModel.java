@@ -19,27 +19,12 @@ import javax.swing.table.AbstractTableModel;
 public class ResultTableModel extends AbstractTableModel {
 
     private static ResultTableModel SINGLETON = null;
-    private Class[] columnClasses = columnClasses = new Class[]{Object.class, String.class, Integer.class, Double.class, Object.class, Integer.class, Double.class, Object.class};
-    private String[] columnNames = new String[]{"", "Einheit", "Angreifer", "Tech", "", "Verteidiger", "Tech", ""};
+    private Class[] columnClasses;
+    private String[] columnNames;
     private List<SimulatorResult> data = null;
 
     ResultTableModel() {
-        setupModel();
-        data = new LinkedList<>();
-    }
-
-    public static synchronized ResultTableModel getSingleton() {
-        if (SINGLETON == null) {
-            SINGLETON = new ResultTableModel();
-        }
-        return SINGLETON;
-    }
-
-    public void reset() {
-        SINGLETON = null;
-    }
-
-    public void setupModel() {
+        super();
         String[] ordered = new String[]{"", "spear", "sword", "axe", "archer", "spy", "light", "marcher", "heavy", "ram", "catapult", "knight", "snob", "militia"};
         List<String> columns = new LinkedList<>();
         List<Class> classes = new LinkedList<>();
@@ -53,6 +38,18 @@ public class ResultTableModel extends AbstractTableModel {
         }
         columnNames = columns.toArray(new String[]{});
         columnClasses = classes.toArray(new Class[]{});
+        data = new LinkedList<>();
+    }
+
+    public static synchronized ResultTableModel getSingleton() {
+        if (SINGLETON == null) {
+            SINGLETON = new ResultTableModel();
+        }
+        return SINGLETON;
+    }
+
+    public void reset() {
+        SINGLETON = null;
     }
 
     @Override
@@ -138,6 +135,7 @@ public class ResultTableModel extends AbstractTableModel {
         return (!isDefenderRow(pRow) && !isAttackerRow(pRow));
     }
 
+    @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         int row = 0;
         if (rowIndex > 0) {
