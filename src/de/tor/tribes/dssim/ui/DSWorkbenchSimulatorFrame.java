@@ -23,7 +23,7 @@ import de.tor.tribes.dssim.model.SimulatorTableModel;
 import de.tor.tribes.dssim.renderer.MultiFunctionCellRenderer;
 import de.tor.tribes.dssim.renderer.TableHeaderRenderer;
 import de.tor.tribes.dssim.renderer.UnitTableCellRenderer;
-import de.tor.tribes.dssim.types.AbstractUnitElement;;
+import de.tor.tribes.dssim.types.AbstractUnitElement;
 import de.tor.tribes.dssim.types.EventListener;
 import de.tor.tribes.dssim.types.KnightItem;
 import de.tor.tribes.dssim.types.SimulatorResult;
@@ -40,64 +40,22 @@ import java.awt.Font;
 import java.awt.Point;
 import java.io.*;
 import java.net.Proxy;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableCellRenderer;import de.tor.tribes.dssim.types.EventListener;
-import de.tor.tribes.dssim.types.KnightItem;
-import de.tor.tribes.dssim.types.SimulatorResult;
-import de.tor.tribes.dssim.types.UnitHolder;
-import de.tor.tribes.dssim.util.AStarResultReceiver;
-import de.tor.tribes.dssim.util.ConfigManager;
-import de.tor.tribes.dssim.util.ImageManager;
-import de.tor.tribes.dssim.util.UnitManager;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Point;
-import java.io.*;
-import java.net.Proxy;
-import java.net.URL;
-import java.text.NumberFormat;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
+import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @author Charon
  */
 public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
 
-    private static Logger logger = Logger.getLogger("DSWorkbenchSimulatorFrame");
+    private static Logger logger = LogManager.getLogger("SimFrame");
 
     private static DSWorkbenchSimulatorFrame SINGLETON = null;
     private final String SERVER_PROP = "default.server";
@@ -125,6 +83,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         initComponents();
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
+            @Override
             public void run() {
                 try {
                     mProperties.put("width", Integer.toString(getWidth()));
@@ -192,11 +151,11 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         setVisible(true);
     }
 
-    public void insertValuesExternally(Hashtable<String, Double> pValues) {
+    public void insertValuesExternally(HashMap<String, Double> pValues) {
         insertValuesExternally(null, pValues, null);
     }
 
-    public void insertValuesExternally(Point pCoordinates, Hashtable<String, Double> pValues, AStarResultReceiver pReceiver) {
+    public void insertValuesExternally(Point pCoordinates, HashMap<String, Double> pValues, AStarResultReceiver pReceiver) {
         if (pCoordinates != null) {
             mCoordinates = new Point(pCoordinates);
         } else {
@@ -310,7 +269,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         try {
             ConfigManager.getSingleton().loadServers();
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to load server list. Message: {0}", e.getMessage());
+            logger.warn("Failed to load server list. Message: {0}", e.getMessage());
         }
     }
 
@@ -378,6 +337,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         //list selection listeners
         jOffKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 KnightItem item = (KnightItem) jOffKnightItemList.getSelectedValue();
                 if (item == null || item.getItemId() == KnightItem.ID_NO_ITEM) {
@@ -395,6 +355,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         });
         jDefKnightItemList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 Object[] selection = jDefKnightItemList.getSelectedValues();
 
@@ -430,6 +391,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jResultTable.setRowSelectionAllowed(true);
         jResultTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 updateResultSelection();
             }
@@ -444,19 +406,15 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }
 
     public void updatePop() {
-        Hashtable<UnitHolder, AbstractUnitElement> troops = SimulatorTableModel.getSingleton().getOff();
-        Enumeration<UnitHolder> keys = troops.keys();
+        HashMap<UnitHolder, AbstractUnitElement> troops = SimulatorTableModel.getSingleton().getOff();
         int cnt = 0;
-        while (keys.hasMoreElements()) {
-            UnitHolder unit = keys.nextElement();
+        for(UnitHolder unit: troops.keySet()) {
             cnt += unit.getPop() * troops.get(unit).getCount();
         }
         jOffPop.setText(Integer.toString(cnt));
         troops = SimulatorTableModel.getSingleton().getDef();
-        keys = troops.keys();
         cnt = 0;
-        while (keys.hasMoreElements()) {
-            UnitHolder unit = keys.nextElement();
+        for(UnitHolder unit: troops.keySet()) {
             cnt += unit.getPop() * troops.get(unit).getCount();
         }
 
@@ -635,8 +593,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
-                    .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
-                    .addComponent(jLabel12, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 560, Short.MAX_VALUE)
+                    .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 560, Short.MAX_VALUE)
+                    .addComponent(jLabel12, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 560, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel4Layout.createSequentialGroup()
@@ -1012,7 +970,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jAttackerBelieve.setSelected(true);
         jAttackerBelieve.setText("Gläubig");
         jAttackerBelieve.setToolTipText("Angreifer ist gläubig");
-        jAttackerBelieve.setOpaque(false);
         jAttackerBelieve.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 fireBelieveChangedEvent(evt);
@@ -1029,7 +986,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jDefenderBelieve.setSelected(true);
         jDefenderBelieve.setText("Gläubig");
         jDefenderBelieve.setToolTipText("Verteidiger ist gläubig");
-        jDefenderBelieve.setOpaque(false);
         jDefenderBelieve.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 fireBelieveChangedEvent(evt);
@@ -1131,7 +1087,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jAimWall.setMargin(new java.awt.Insets(2, 0, 2, 2));
         jAimWall.setMaximumSize(new java.awt.Dimension(18, 18));
         jAimWall.setMinimumSize(new java.awt.Dimension(18, 18));
-        jAimWall.setOpaque(false);
         jAimWall.setPreferredSize(new java.awt.Dimension(18, 18));
         jAimWall.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1205,7 +1160,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jAimChurch.setMargin(new java.awt.Insets(2, 0, 2, 2));
         jAimChurch.setMaximumSize(new java.awt.Dimension(18, 18));
         jAimChurch.setMinimumSize(new java.awt.Dimension(18, 18));
-        jAimChurch.setOpaque(false);
         jAimChurch.setPreferredSize(new java.awt.Dimension(18, 18));
         jAimChurch.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1345,7 +1299,6 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         jNightBonus.setMargin(new java.awt.Insets(2, 0, 2, 2));
         jNightBonus.setMaximumSize(new java.awt.Dimension(100, 25));
         jNightBonus.setMinimumSize(new java.awt.Dimension(100, 25));
-        jNightBonus.setOpaque(false);
         jNightBonus.setPreferredSize(new java.awt.Dimension(100, 25));
         jNightBonus.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/moon.png"))); // NOI18N
         jNightBonus.addItemListener(new java.awt.event.ItemListener() {
@@ -1682,18 +1635,17 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_fireNightBonusStateChangedEvent
 
     private void fireBombDefEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireBombDefEvent
-        Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
-        Hashtable<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
+        HashMap<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
+        HashMap<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
         boolean nightBonus = jNightBonus.isSelected();
         int wallLevel = (Integer) jWallSpinner.getValue();
         int cataTarget = (Integer) jCataTargetSpinner.getValue();
         boolean cataFarm = false;
         boolean cataChurch = false;
-        boolean cataWall = false;
+        boolean cataWall = jAimWall.isSelected();
         if (ConfigManager.getSingleton().isChurch()) {
             cataChurch = jAimChurch.isSelected();
         }
-        cataWall = jAimWall.isSelected();
         double luck = (Double) jLuckSpinner.getValue();
         double moral = (Integer) jMoralSpinner.getValue();
         int farmLevel = 0;
@@ -1711,7 +1663,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
             defenderBelieve = jDefenderBelieve.isSelected();
         }
         //build knight item list
-        List<KnightItem> defItems = new LinkedList<KnightItem>();
+        List<KnightItem> defItems = new LinkedList<>();
 
         KnightItem offItem = (KnightItem) jOffKnightItemList.getSelectedValue();
         if (offItem == null) {
@@ -1753,19 +1705,19 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private void fireServerChangedEvent(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_fireServerChangedEvent
         if (evt == null || evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
             try {
+                logger.debug("reading server settings");
                 String serverID = (String) jServerList.getSelectedItem();
                 ConfigManager.getSingleton().parseConfig(serverID);
                 UnitManager.getSingleton().parseUnits(serverID);
+                logger.debug("setting up UI");
                 SimulatorTableModel.getSingleton().reset();
                 ResultTableModel.getSingleton().reset();
-                SimulatorTableModel.getSingleton().setupModel();
                 SimulatorTableModel.getSingleton().addTableModelListener(new TableModelListener() {
-
+                    @Override
                     public void tableChanged(TableModelEvent e) {
                         updatePop();
                     }
                 });
-                ResultTableModel.getSingleton().setupModel();
                 if (UnitManager.getSingleton().getUnitByPlainName("archer") != null) {
                     sim = new NewSimulator();
                     lastResult = null;
@@ -1779,10 +1731,13 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
                 jAttackerBelieve.setEnabled(ConfigManager.getSingleton().isChurch());
                 jDefenderBelieve.setEnabled(ConfigManager.getSingleton().isChurch());
                 jAimChurch.setEnabled(ConfigManager.getSingleton().isChurch());
+                logger.debug("setting up tables");
                 buildTables();
                 buildResultTable(new SimulatorResult());
                 mProperties.put(SERVER_PROP, serverID);
+                logger.debug("finished server change");
             } catch (Exception e) {
+                logger.error("Fehler beim Wechseln des Servers" ,e);
                 fireGlobalWarningEvent("Fehler beim Wechseln des Servers (Grund: " + e.getMessage() + ")");
             }
         }
@@ -1805,9 +1760,9 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private void fireOpenHomepageEvent(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_fireOpenHomepageEvent
         try {
             if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().browse(new URL("http://www.dsworkbench.de/index.php?id=73").toURI());
+                Desktop.getDesktop().browse(new URL("https://forum.die-staemme.de/index.php?threads/ds-workbench.80831/").toURI());
             }
-        } catch (Exception e) {
+        } catch (URISyntaxException | IOException e) {
         }
 }//GEN-LAST:event_fireOpenHomepageEvent
 
@@ -1858,8 +1813,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }
 
     private void fireCalculateEvent() {
-        Hashtable<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
-        Hashtable<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
+        HashMap<UnitHolder, AbstractUnitElement> off = SimulatorTableModel.getSingleton().getOff();
+        HashMap<UnitHolder, AbstractUnitElement> def = SimulatorTableModel.getSingleton().getDef();
         boolean nightBonus = jNightBonus.isSelected();
         boolean cataFarm = false;
         boolean cataChurch = false;
@@ -1887,7 +1842,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         }
 
         //build knight item list
-        List<KnightItem> defItems = new LinkedList<KnightItem>();
+        List<KnightItem> defItems = new LinkedList<>();
 
         KnightItem offItem = (KnightItem) jOffKnightItemList.getSelectedValue();
         if (offItem == null) {
@@ -1920,99 +1875,86 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         // </editor-fold>
 
         // <editor-fold defaultstate="collapsed" desc="Winner/Loser color renderer">
-        //final boolean won = pResult.isWin();
         DefaultTableCellRenderer winLossRenderer = new DefaultTableCellRenderer() {
-
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = new DefaultTableCellRenderer().getTableCellRendererComponent(table, value, isSelected, hasFocus, row, row);
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                JLabel l;
+                try {
+                    l = (JLabel) c;
+                } catch(ClassCastException e) {
+                    logger.debug("Exeption happend: ", e);
+                    return c;
+                }
+                
                 if (!isSelected) {
-                    c.setBackground(Constants.DS_BACK);
+                    l.setBackground(Constants.DS_BACK);
                 } else {
-                    c.setBackground(Constants.DS_BACK.darker());
+                    l.setBackground(Constants.DS_BACK.darker());
                 }
                 int dataSet = ResultTableModel.getSingleton().getDataSetNumberForRow(row);
                 boolean won = ResultTableModel.getSingleton().getResult(dataSet).isWin();
-                if (table.getValueAt(row, 0) == null) {
+                if (table.getValueAt(row, 0).equals("")) {
                     if (!isSelected) {
-                        c.setBackground(Color.LIGHT_GRAY);
+                        l.setBackground(Constants.DS_BACK_LIGHT);
                     } else {
-                        c.setBackground(Color.LIGHT_GRAY.darker());
-                    }
-                } else if (table.getValueAt(row, 0).equals("")) {
-                    if (!isSelected) {
-                        c.setBackground(Constants.DS_BACK_LIGHT);
-                    } else {
-                        c.setBackground(Constants.DS_BACK_LIGHT.darker());
+                        l.setBackground(Constants.DS_BACK_LIGHT.darker());
                     }
                 } else {
-                    try {
-                        String v = (String) table.getValueAt(row, 0);
-                        jResultTable.setShowVerticalLines(false);
-                        if (v.startsWith("Ergebnis")) {
-                            ((JLabel) c).setBorder(BorderFactory.createEmptyBorder());
-                        } else {
-                            ((JLabel) c).setBorder(BorderFactory.createLineBorder(Constants.DS_BACK, 1));
-                        }
-                    } catch (Exception e) {
+                    String v = (String) table.getValueAt(row, 0);
+                    if (v.startsWith("Ergebnis")) {
+                        l.setBorder(BorderFactory.createEmptyBorder());
+                    } else {
+                        l.setBorder(BorderFactory.createLineBorder(Constants.DS_BACK, 1));
                     }
                 }
 
-                ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
-                try {
-                    ((JLabel) c).setText(Integer.toString((Integer) value));
-                } catch (Exception e) {
-                    ((JLabel) c).setText((String) value);
-                    try {
-                        if (((JLabel) c).getText().startsWith("Ergebnis")) {
-                            ((JLabel) c).setText("<html><b>" + ((JLabel) c).getText() + "</b></html>");
-                        } else if (((JLabel) c).getText().equals("Wall")) {
-                            ((JLabel) c).setText("");
-                            ((JLabel) c).setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/wall.png")));
-                        } else if (((JLabel) c).getText().equals("Gebäude")) {
-                            ((JLabel) c).setText("");
-                            ((JLabel) c).setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/main.png")));
-                        }
-                    } catch (Exception inner) {
+                l.setHorizontalAlignment(SwingConstants.CENTER);
+                if(value instanceof Integer) {
+                    l.setText(Integer.toString((Integer) value));
+                    l.setIcon(null);
+                }
+                else if(value instanceof String) {
+                    String data = (String) value;
+                    if (data.startsWith("Ergebnis")) {
+                        l.setText("<html><b>" + data + "</b></html>");
+                        l.setIcon(null);
+                    } else if (data.equals("Wall")) {
+                        l.setText("");
+                        l.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/wall.png")));
+                    } else if (data.equals("Gebäude")) {
+                        l.setText("");
+                        l.setIcon(new javax.swing.ImageIcon(getClass().getResource("/res/icons/main.png")));
+                    } else {
+                        l.setText(data);
+                        l.setIcon(null);
                     }
                 }
-                //if (!isSelected) {
-                row -= dataSet * 9;
-                if (won) {
-                    //if (row == 1 || row == 2 || row == 3) {
-                    if (ResultTableModel.getSingleton().isAttackerRow(row)) {
-                        if (!isSelected) {
-                            ((JLabel) c).setBackground(Constants.WINNER_GREEN);
-                        } else {
-                            ((JLabel) c).setBackground(Constants.WINNER_GREEN.darker());
-                        }
-                    //} else if (row == 5 || row == 6 || row == 7) {
-                    } else if (ResultTableModel.getSingleton().isDefenderRow(row)) {
-                        if (!isSelected) {
-                            ((JLabel) c).setBackground(Constants.LOSER_RED);
-                        } else {
-                            ((JLabel) c).setBackground(Constants.LOSER_RED.darker());
-                        }
-                    }
 
-                } else {
-                    //if (row == 0 || row == 1 || row == 2) {
-                    if (ResultTableModel.getSingleton().isAttackerRow(row)) {
-                        if (!isSelected) {
-                            ((JLabel) c).setBackground(Constants.LOSER_RED);
-                        } else {
-                            ((JLabel) c).setBackground(Constants.LOSER_RED.darker());
-                        }
-                    //} else if (row == 4 || row == 5 || row == 6) {
-                    } else if (ResultTableModel.getSingleton().isDefenderRow(row)) {
-                        if (!isSelected) {
-                            ((JLabel) c).setBackground(Constants.WINNER_GREEN);
-                        } else {
-                            ((JLabel) c).setBackground(Constants.WINNER_GREEN.darker());
-                        }
+                Color bg;
+                if (ResultTableModel.getSingleton().isAttackerRow(row)) {
+                    if (won) {
+                        bg = Constants.WINNER_GREEN;
+                    } else {
+                        bg = Constants.LOSER_RED;
                     }
+                } else if (ResultTableModel.getSingleton().isDefenderRow(row)) {
+                    if (won) {
+                        bg = Constants.LOSER_RED;
+                    } else {
+                        bg = Constants.WINNER_GREEN;
+                    }
+                } else {
+                    bg = null;
                 }
-                return c;
+
+                if(bg != null)
+                    if(!isSelected)
+                        l.setBackground(bg);
+                    else
+                        l.setBackground(bg.darker());
+
+                return l;
             }
         };
         // </editor-fold>
@@ -2048,8 +1990,8 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     }
 
     private void addResult(SimulatorResult pResult) {
-        Hashtable<UnitHolder, AbstractUnitElement> off = sim.getOff();
-        Hashtable<UnitHolder, AbstractUnitElement> def = sim.getDef();
+        HashMap<UnitHolder, AbstractUnitElement> off = sim.getOff();
+        HashMap<UnitHolder, AbstractUnitElement> def = sim.getDef();
         pResult.setOffBefore(off);
         pResult.setDefBefore(def);
         pResult.setWallBefore((Integer) jWallSpinner.getValue());
@@ -2123,23 +2065,21 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
         double defBash = 0;
         for (Integer dataSetId : datasets) {
             SimulatorResult result = ResultTableModel.getSingleton().getResult(dataSetId);
-            Enumeration<UnitHolder> keys = result.getOffBefore().keys();
-            while (keys.hasMoreElements()) {
-                UnitHolder u = keys.nextElement();
-                AbstractUnitElement offElement = result.getOffBefore().get(u);
-                AbstractUnitElement defElement = result.getDefBefore().get(u);
-                int attackLoss = offElement.getCount() - result.getSurvivingOff().get(u).getCount();
+            for(UnitHolder unit: result.getOffBefore().keySet()) {
+                AbstractUnitElement offElement = result.getOffBefore().get(unit);
+                AbstractUnitElement defElement = result.getDefBefore().get(unit);
+                int attackLoss = offElement.getCount() - result.getSurvivingOff().get(unit).getCount();
                 //attWood += u.getWood() * attackLoss;
                 //attMud += u.getStone() * attackLoss;
                 //attIron += u.getIron() * attackLoss;
-                attPop += u.getPop() * attackLoss;
-                defBash += getDefBash(u, attackLoss);
-                int defenderLoss = defElement.getCount() - result.getSurvivingDef().get(u).getCount();
+                attPop += unit.getPop() * attackLoss;
+                defBash += getDefBash(unit, attackLoss);
+                int defenderLoss = defElement.getCount() - result.getSurvivingDef().get(unit).getCount();
                 //defWood += u.getWood() * defenderLoss;
                 //defMud += u.getStone() * defenderLoss;
                 //defIron += u.getIron() * defenderLoss;
-                defPop += u.getPop() * defenderLoss;
-                attBash += getAttBash(u, defenderLoss);
+                defPop += unit.getPop() * defenderLoss;
+                attBash += getAttBash(unit, defenderLoss);
             }
         }
 
@@ -2223,7 +2163,7 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
     private Integer[] getSelectedDataSets() {
 
         int[] rows = jResultTable.getSelectedRows();
-        List<Integer> selection = new LinkedList<Integer>();
+        List<Integer> selection = new LinkedList<>();
         for (int row : rows) {
             int ds = ResultTableModel.getSingleton().getDataSetNumberForRow(row);
             if (!selection.contains(ds)) {
@@ -2250,13 +2190,14 @@ public class DSWorkbenchSimulatorFrame extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-
         try {
+            logger.debug("loading servers");
             ConfigManager.getSingleton().loadServers();
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             //UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
             java.awt.EventQueue.invokeLater(new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         DSWorkbenchSimulatorFrame.getSingleton().setVisible(true);

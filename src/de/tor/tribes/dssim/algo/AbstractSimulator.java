@@ -10,7 +10,7 @@ import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
 import de.tor.tribes.dssim.ui.DSWorkbenchSimulatorFrame;
 import de.tor.tribes.dssim.util.ConfigManager;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -22,8 +22,8 @@ public abstract class AbstractSimulator {
     public final int ID_INFANTRY = 0;
     public final int ID_CAVALRY = 1;
     public final int ID_ARCHER = 2;
-    private Hashtable<UnitHolder, AbstractUnitElement> off = null;
-    private Hashtable<UnitHolder, AbstractUnitElement> def = null;
+    private HashMap<UnitHolder, AbstractUnitElement> off = null;
+    private HashMap<UnitHolder, AbstractUnitElement> def = null;
     private boolean nightBonus = false;
     private double luck = 0.0;
     private double moral = 100;
@@ -36,9 +36,9 @@ public abstract class AbstractSimulator {
     private boolean cataFarm = false;
     private boolean cataWall = false;
 
-    public abstract SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm, boolean pCataWall);
+    public abstract SimulatorResult calculate(HashMap<UnitHolder, AbstractUnitElement> pOff, HashMap<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm, boolean pCataWall);
 
-    public SimulatorResult bunkerBuster(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm, boolean pCataWall) {
+    public SimulatorResult bunkerBuster(HashMap<UnitHolder, AbstractUnitElement> pOff, HashMap<UnitHolder, AbstractUnitElement> pDef, KnightItem pOffItem, List<KnightItem> pDefItems, boolean pNightBonus, double pLuck, double pMoral, int pWallLevel, int pBuildingLevel, int pFarmLevel, boolean pAttackerBelieve, boolean pDefenderBelieve, boolean pCataChurch, boolean pCataFarm, boolean pCataWall) {
         SimulatorResult result = calculate(pOff, pDef, pOffItem, pDefItems, pNightBonus, pLuck, pMoral, pWallLevel, pBuildingLevel, pFarmLevel, pAttackerBelieve, pDefenderBelieve, pCataChurch, pCataFarm, pCataWall);
         DSWorkbenchSimulatorFrame.getSingleton().addResultExternally(result);
         setFarmLevel(pFarmLevel);
@@ -91,19 +91,19 @@ public abstract class AbstractSimulator {
         return (pUnit.getPlainName().equals("knight"));
     }
 
-    public void setOff(Hashtable<UnitHolder, AbstractUnitElement> pOff) {
+    public void setOff(HashMap<UnitHolder, AbstractUnitElement> pOff) {
         off = pOff;
     }
 
-    public Hashtable<UnitHolder, AbstractUnitElement> getOff() {
+    public HashMap<UnitHolder, AbstractUnitElement> getOff() {
         return off;
     }
 
-    public void setDef(Hashtable<UnitHolder, AbstractUnitElement> pDef) {
+    public void setDef(HashMap<UnitHolder, AbstractUnitElement> pDef) {
         def = pDef;
     }
 
-    public Hashtable<UnitHolder, AbstractUnitElement> getDef() {
+    public HashMap<UnitHolder, AbstractUnitElement> getDef() {
         return def;
     }
 

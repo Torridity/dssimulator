@@ -10,16 +10,19 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
-import org.jdom.Document;
-import org.jdom.Element;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jdom2.Document;
+import org.jdom2.Element;
 
 /**
  *
  * @author Charon
  */
 public class UnitManager {
+    private static Logger logger = LogManager.getLogger("SimUnitManager");
 
-    private static List<UnitHolder> units = new LinkedList<UnitHolder>();
+    private static List<UnitHolder> units = new LinkedList<>();
     private static UnitManager SINGLETON = null;
 
     public static synchronized UnitManager getSingleton() {
@@ -37,8 +40,8 @@ public class UnitManager {
         try {
             // Document d = JaxenUtils.getDocument(UnitManager.class.getResourceAsStream("/res/servers/units_" + pServerID + ".xml"));
             URLConnection con = new URL(ConfigManager.getSingleton().getServerURL(pServerID) + "/interface.php?func=get_unit_info").openConnection();
-            Document d = JaxenUtils.getDocument(con.getInputStream());
-            List<Element> l = JaxenUtils.getNodes(d, "/config/*");
+            Document d = JDomUtils.getDocument(con.getInputStream());
+            List<Element> l = JDomUtils.getNodes(d, null);
             for (Element e : l) {
                 try {
                     units.add(new UnitHolder(e));
@@ -54,8 +57,8 @@ public class UnitManager {
     public void setUnits(String pSettingsPath) throws Exception {
         units.clear();
         try {
-            Document d = JaxenUtils.getDocument(new File(pSettingsPath));
-            List<Element> l = JaxenUtils.getNodes(d, "/config/*");
+            Document d = JDomUtils.getDocument(new File(pSettingsPath));
+            List<Element> l = JDomUtils.getNodes(d, null);
             for (Element e : l) {
                 try {
                     units.add(new UnitHolder(e));

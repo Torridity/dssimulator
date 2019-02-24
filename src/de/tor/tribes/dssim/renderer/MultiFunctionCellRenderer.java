@@ -40,7 +40,7 @@ public class MultiFunctionCellRenderer extends DefaultTableCellRenderer {
             }
             return b;
         //} else if (row == 1 && (column == 0 || column > 4)) {
-            } else if (row == 1 && (column == 0 || column == table.getColumnCount() - 1)) {
+        } else if (row == 1 && (column == 0 || column == table.getColumnCount() - 1)) {
             JButton b = new JButton("");
             if (column == 0) {
                 b.setToolTipText("Off speichern");

@@ -1,11 +1,24 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* 
+ * Copyright 2015 Torridity.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package de.tor.tribes.dssim.types;
 
 import java.io.Serializable;
-import org.jdom.Element;
+import java.util.Comparator;
+import java.util.Objects;
+import org.jdom2.Element;
 
 /**
  *
@@ -13,11 +26,10 @@ import org.jdom.Element;
  */
 public class UnitHolder implements Serializable {
 
+    public static final Comparator<UnitHolder> RUNTIME_COMPARATOR = new RuntimeComparator();
+    private static final long serialVersionUID = 10L;
     private String plainName = null;
     private String name = null;
-    private double wood = 0;
-    private double stone = 0;
-    private double iron = 0;
     private double pop = 0;
     private double speed = 0;
     private double attack = 0;
@@ -27,54 +39,57 @@ public class UnitHolder implements Serializable {
     private double carry = 0;
     private double buildTime = 0;
 
+    public UnitHolder() {
+        name = "";
+        plainName = "";
+    }
+
     public UnitHolder(Element pElement) throws Exception {
         try {
-            setPlainName(pElement.getName());
-            if (pElement.getName().equals("spear")) {
-                setName("Speerträger");
-            } else if (pElement.getName().equals("sword")) {
-                setName("Schwertkämpfer");
-            } else if (pElement.getName().equals("axe")) {
-                setName("Axtkämpfer");
-            } else if (pElement.getName().equals("archer")) {
-                setName("Bogenschütze");
-            } else if (pElement.getName().equals("spy")) {
-                setName("Späher");
-            } else if (pElement.getName().equals("light")) {
-                setName("Leichte Kavallerie");
-            } else if (pElement.getName().equals("marcher")) {
-                setName("Berittener Bogenschütze");
-            } else if (pElement.getName().equals("heavy")) {
-                setName("Schwere Kavallerie");
-            } else if (pElement.getName().equals("ram")) {
-                setName("Ramme");
-            } else if (pElement.getName().equals("catapult")) {
-                setName("Katapult");
-            } else if (pElement.getName().equals("knight")) {
-                setName("Paladin");
-            } else if (pElement.getName().equals("snob")) {
-                setName("Adelsgeschlecht");
+            this.plainName = pElement.getName();
+            if (this.plainName.equals("spear")) {
+                this.name = "Speerträger";
+            } else if (this.plainName.equals("sword")) {
+                this.name = "Schwertkämpfer";
+            } else if (this.plainName.equals("axe")) {
+                this.name = "Axtkämpfer";
+            } else if (this.plainName.equals("archer")) {
+                this.name = "Bogenschütze";
+            } else if (this.plainName.equals("spy")) {
+                this.name = "Späher";
+            } else if (this.plainName.equals("light")) {
+                this.name = "Leichte Kavallerie";
+            } else if (this.plainName.equals("marcher")) {
+                this.name = "Berittener Bogenschütze";
+            } else if (this.plainName.equals("heavy")) {
+                this.name = "Schwere Kavallerie";
+            } else if (this.plainName.equals("ram")) {
+                this.name = "Ramme";
+            } else if (this.plainName.equals("catapult")) {
+                this.name = "Katapult";
+            } else if (this.plainName.equals("knight")) {
+                this.name = "Paladin";
+            } else if (this.plainName.equals("snob")) {
+                this.name = "Adelsgeschlecht";
+            } else if (this.plainName.equals("militia")) {
+                this.name = "Miliz";
             } else {
-                setName("Unbekannt (" + pElement.getName() + ")");
+                this.name = "Unbekannt (" + this.plainName + ")";
             }
-
-           //Disabled due to missing information in unit_info
-           // setWood(Double.parseDouble(pElement.getChild("wood").getText()));
-           // setStone(Double.parseDouble(pElement.getChild("stone").getText()));
-           // setIron(Double.parseDouble(pElement.getChild("iron").getText()));
-            setPop(Double.parseDouble(pElement.getChild("pop").getText()));
-            setSpeed(Double.parseDouble(pElement.getChild("speed").getText()));
-            setAttack(Double.parseDouble(pElement.getChild("attack").getText()));
-            setDefense(Double.parseDouble(pElement.getChild("defense").getText()));
-            setDefenseCavalry(Double.parseDouble(pElement.getChild("defense_cavalry").getText()));
-            setDefenseArcher(Double.parseDouble(pElement.getChild("defense_archer").getText()));
-            setCarry(Double.parseDouble(pElement.getChild("carry").getText()));
-            setBuildTime(Double.parseDouble(pElement.getChild("build_time").getText()));
+            
+            this.pop = Double.parseDouble(pElement.getChild("pop").getText());
+            this.speed = Double.parseDouble(pElement.getChild("speed").getText());
+            this.attack = Double.parseDouble(pElement.getChild("attack").getText());
+            this.defense = Double.parseDouble(pElement.getChild("defense").getText());
+            this.defenseCavalry = Double.parseDouble(pElement.getChild("defense_cavalry").getText());
+            this.defenseArcher = Double.parseDouble(pElement.getChild("defense_archer").getText());
+            this.carry = Double.parseDouble(pElement.getChild("carry").getText());
+            this.buildTime = Double.parseDouble(pElement.getChild("build_time").getText());
         } catch (Exception e) {
             throw new Exception("Fehler beim laden von Einheit '" + pElement.getName() + "'", e);
         }
     }
-
+    
     public String getPlainName() {
         return plainName;
     }
@@ -89,48 +104,6 @@ public class UnitHolder implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String[] getNames() {
-        if (getPlainName().equals("archer")) {
-            return new String[]{"Bogenschützen", getName()};
-        } else if (getPlainName().equals("marcher")) {
-            return new String[]{"Berittene Bogenschützen", getName()};
-        } else if (getPlainName().equals("ram")) {
-            return new String[]{"Rammen", getName()};
-        } else if (getPlainName().equals("catapult")) {
-            return new String[]{"Katapulte", getName()};
-        } else if (getPlainName().equals("knight")) {
-            return new String[]{"Paladine", getName()};
-        } else if (getPlainName().equals("snob")) {
-            return new String[]{"Adelsgeschlechter", getName()};
-        } else {
-            return new String[]{getName()};
-        }
-    }
-
-    public double getWood() {
-        return wood;
-    }
-
-    public void setWood(double wood) {
-        this.wood = wood;
-    }
-
-    public double getStone() {
-        return stone;
-    }
-
-    public void setStone(double stone) {
-        this.stone = stone;
-    }
-
-    public double getIron() {
-        return iron;
-    }
-
-    public void setIron(double iron) {
-        this.iron = iron;
     }
 
     public double getPop() {
@@ -189,6 +162,53 @@ public class UnitHolder implements Serializable {
         this.carry = carry;
     }
 
+    public boolean isFarmUnit() {
+        return carry > 0 || (getPlainName() != null && getPlainName().equals("spy"));
+    }
+
+    public boolean isInfantry() {
+        String plain = getPlainName();
+        return plain != null && (plain.equals("spear") || plain.equals("sword") || plain.equals("archer") || plain.equals("axe"));
+    }
+
+    public boolean isCavalry() {
+        String plain = getPlainName();
+        return plain != null && (plain.equals("spy") || plain.equals("light") || plain.equals("marcher") || plain.equals("heavy"));
+    }
+
+    public boolean isOther() {
+        return !isInfantry() && !isCavalry();
+    }
+
+    public boolean isDefense() {
+        String plain = getPlainName();
+        return plain != null && (plain.equals("spear") || plain.equals("sword") || plain.equals("archer") || plain.equals("spy") || plain.equals("heavy") || plain.equals("catapult") || plain.equals("knight"));
+    }
+
+    public boolean isOffense() {
+        String plain = getPlainName();
+        return plain != null && (plain.equals("axe") || plain.equals("spy") || plain.equals("light") || plain.equals("marcher") || plain.equals("ram") || plain.equals("catapult"));
+    }
+
+    public boolean isSpecial() {
+        return (!isDefense() && !isOffense());
+    }
+
+    public boolean isSpy() {
+        String plain = getPlainName();
+        return plain != null && plain.equals("spy");
+    }
+
+    public boolean isSnob() {
+        String plain = getPlainName();
+        return plain != null && plain.equals("snob");
+    }
+
+    public boolean isRetimeUnit() {
+        String plain = getPlainName();
+        return plain != null && !plain.equals("spy") && !plain.equals("snob") && !plain.equals("militia");
+    }
+
     public double getBuildTime() {
         return buildTime;
     }
@@ -197,8 +217,47 @@ public class UnitHolder implements Serializable {
         this.buildTime = buildTime;
     }
 
+    public String toBBCode() {
+        return "[unit]" + getPlainName() + "[/unit]";
+    }
+
     @Override
     public String toString() {
         return getName();// + "(" + getSpeed() + " Minuten/Feld)";
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+        if(other instanceof UnitHolder) {
+            return hashCode() == other.hashCode();
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 89 * hash + Objects.hashCode(this.plainName);
+        hash = 89 * hash + Objects.hashCode(this.name);
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.pop) ^ (Double.doubleToLongBits(this.pop) >>> 32));
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.speed) ^ (Double.doubleToLongBits(this.speed) >>> 32));
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.attack) ^ (Double.doubleToLongBits(this.attack) >>> 32));
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.defense) ^ (Double.doubleToLongBits(this.defense) >>> 32));
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.defenseCavalry) ^ (Double.doubleToLongBits(this.defenseCavalry) >>> 32));
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.defenseArcher) ^ (Double.doubleToLongBits(this.defenseArcher) >>> 32));
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.carry) ^ (Double.doubleToLongBits(this.carry) >>> 32));
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this.buildTime) ^ (Double.doubleToLongBits(this.buildTime) >>> 32));
+        return hash;
+    }
+
+    private static class RuntimeComparator implements Comparator<UnitHolder>, java.io.Serializable {
+        // use serialVersionUID from JDK 1.2.2 for interoperability
+
+        private static final long serialVersionUID = 8575799808933029326L;
+
+        @Override
+        public int compare(UnitHolder s1, UnitHolder s2) {
+            return new Double(s1.getSpeed()).compareTo(s2.getSpeed());
+        }
     }
 }

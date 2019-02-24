@@ -8,7 +8,7 @@ import de.tor.tribes.dssim.types.AbstractUnitElement;
 import de.tor.tribes.dssim.types.UnitHolder;
 import de.tor.tribes.dssim.util.ConfigManager;
 import de.tor.tribes.dssim.util.UnitManager;
-import java.util.Hashtable;
+import java.util.HashMap;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -18,12 +18,18 @@ import javax.swing.table.DefaultTableModel;
 public class SimulatorTableModel extends DefaultTableModel {
 
     private static SimulatorTableModel SINGLETON = null;
-    private Class[] columnClasses = columnClasses = new Class[]{Object.class, String.class, Integer.class, Double.class, Object.class, Integer.class, Double.class, Object.class};
-    private String[] columnNames = new String[]{"", "Einheit", "Angreifer", "Tech", "", "Verteidiger", "Tech", ""};
+    private Class[] columnClasses;
+    private String[] columnNames;
 
     SimulatorTableModel() {
         super();
-        setupModel();
+        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
+            columnNames = new String[]{"", "Einheit", "Angreifer", "", "Verteidiger", ""};
+            columnClasses = new Class[]{Object.class, String.class, Integer.class, Object.class, Integer.class, Object.class};
+        } else {
+            columnNames = new String[]{"", "Einheit", "Angreifer", "Tech", "", "Verteidiger", "Tech", ""};
+            columnClasses = new Class[]{Object.class, String.class, Integer.class, Double.class, Object.class, Integer.class, Double.class, Object.class};
+        }
     }
 
     public static synchronized SimulatorTableModel getSingleton() {
@@ -35,16 +41,6 @@ public class SimulatorTableModel extends DefaultTableModel {
 
     public void reset() {
         SINGLETON = null;
-    }
-
-    public void setupModel() {
-        if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
-            columnNames = new String[]{"", "Einheit", "Angreifer", "", "Verteidiger", ""};
-            columnClasses = new Class[]{Object.class, String.class, Integer.class, Object.class, Integer.class, Object.class};
-        } else {
-            columnNames = new String[]{"", "Einheit", "Angreifer", "Tech", "", "Verteidiger", "Tech", ""};
-            columnClasses = new Class[]{Object.class, String.class, Integer.class, Double.class, Object.class, Integer.class, Double.class, Object.class};
-        }
     }
 
     @Override
@@ -70,8 +66,8 @@ public class SimulatorTableModel extends DefaultTableModel {
         return false;
     }
 
-    public Hashtable<UnitHolder, AbstractUnitElement> getOff() {
-        Hashtable<UnitHolder, AbstractUnitElement> result = new Hashtable<UnitHolder, AbstractUnitElement>();
+    public HashMap<UnitHolder, AbstractUnitElement> getOff() {
+        HashMap<UnitHolder, AbstractUnitElement> result = new HashMap<>();
         if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
             //return new world values
             for (int i = 0; i < getRowCount(); i++) {
@@ -103,8 +99,8 @@ public class SimulatorTableModel extends DefaultTableModel {
         return result;
     }
 
-    public Hashtable<UnitHolder, AbstractUnitElement> getDef() {
-        Hashtable<UnitHolder, AbstractUnitElement> result = new Hashtable<UnitHolder, AbstractUnitElement>();
+    public HashMap<UnitHolder, AbstractUnitElement> getDef() {
+        HashMap<UnitHolder, AbstractUnitElement> result = new HashMap<>();
         if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
             //return new world values
             for (int i = 0; i < getRowCount(); i++) {
@@ -167,7 +163,7 @@ public class SimulatorTableModel extends DefaultTableModel {
         }
     }
 
-    public void setDef(Hashtable<UnitHolder, AbstractUnitElement> pDef) {
+    public void setDef(HashMap<UnitHolder, AbstractUnitElement> pDef) {
         if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
             //return new world values
             for (int i = 0; i < getRowCount(); i++) {
@@ -196,7 +192,7 @@ public class SimulatorTableModel extends DefaultTableModel {
         }//end of getting table
     }
 
-    public void setOff(Hashtable<UnitHolder, AbstractUnitElement> pOff) {
+    public void setOff(HashMap<UnitHolder, AbstractUnitElement> pOff) {
         if (ConfigManager.getSingleton().getTech() == ConfigManager.ID_SIMPLE_TECH) {
             //return new world values
             for (int i = 0; i < getRowCount(); i++) {

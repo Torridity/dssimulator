@@ -10,8 +10,7 @@ import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
 import de.tor.tribes.dssim.util.ConfigManager;
 import de.tor.tribes.dssim.util.UnitManager;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,7 +26,7 @@ public class NewSimulator extends AbstractSimulator {
     private List<KnightItem> defItems = null;
 
     @Override
-    public SimulatorResult calculate(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef,
+    public SimulatorResult calculate(HashMap<UnitHolder, AbstractUnitElement> pOff, HashMap<UnitHolder, AbstractUnitElement> pDef,
             KnightItem pOffItem,
             List<KnightItem> pDefItems,
             boolean pNightBonus,
@@ -60,15 +59,15 @@ public class NewSimulator extends AbstractSimulator {
             offItem = KnightItem.factoryKnightItem(KnightItem.ID_NO_ITEM);
         }
         if (defItems == null) {
-            defItems = new LinkedList<KnightItem>();
+            defItems = new LinkedList<>();
         }
         SimulatorResult result = new SimulatorResult(getOff(), getDef());
         result.setBuildingBefore(pBuildingLevel);
         AbstractUnitElement ramElement = pOff.get(UnitManager.getSingleton().getUnitByPlainName("ram"));
-        int ramCount = 0;
-        if (ramElement != null) {
-            ramCount = ramElement.getCount();
+        if(ramElement == null) {
+            ramElement = new AbstractUnitElement(UnitManager.getSingleton().getUnitByPlainName("ram"), 0, 0);
         }
+        int ramCount = ramElement.getCount();
         double ramFactor = (offItem.affectsUnit(ramElement.getUnit())) ? 2.0 : 1.0;
 
         if (!isAttackerBelieve()) {
@@ -78,9 +77,7 @@ public class NewSimulator extends AbstractSimulator {
 
         int wallAtFight = getWallLevel() - (int) Math.round((ramCount * ramFactor) / (4 * Math.pow(1.09, getWallLevel())));
         double additionalDamageFactor = 1.0;
-        if (ConfigManager.getSingleton().getKnightNewItems() == 0 || ramFactor == 1.0) {
-            additionalDamageFactor = 1.0;
-        } else {
+        if (ConfigManager.getSingleton().getKnightNewItems() != 0 && ramFactor != 1.0) {
             additionalDamageFactor = 2.0;
         }
         if (wallAtFight < (int) Math.round((double) getWallLevel() / (2.0 * additionalDamageFactor))) {
@@ -178,7 +175,6 @@ public class NewSimulator extends AbstractSimulator {
         if (isCataWall()) {
             setBuildingLevel(result.getWallLevel());
             result.setBuildingBefore(result.getWallLevel());
-            buildingAfter = getBuildingLevel();
         }
         AbstractUnitElement cata = getOff().get(UnitManager.getSingleton().getUnitByPlainName("catapult"));
         if (cata != null && cata.getCount() != 0) {
@@ -259,17 +255,13 @@ public class NewSimulator extends AbstractSimulator {
         return -1;
     }
 
-    private double[] calculateOffStrengths(Hashtable<UnitHolder, AbstractUnitElement> pTable) {
+    private double[] calculateOffStrengths(HashMap<UnitHolder, AbstractUnitElement> pTable) {
         double[] result = new double[3];
-        Enumeration<UnitHolder> units = pTable.keys();
-        double item = 1.0;
-        while (units.hasMoreElements()) {
-            UnitHolder unit = units.nextElement();
+        pTable.keySet().stream().forEach((unit) -> {
             AbstractUnitElement element = pTable.get(unit);
             //calculate knight item factor
             double itemFactor = (offItem.affectsUnit(unit)) ? offItem.getOffFactor() : 1.0;
             if (itemFactor != 1.0) {
-                item = itemFactor;
             }
             //add strength to all appropriate array elements (e.g. marcher is cavalry and archer)
             if (isInfantry(unit) && !isArcher(unit)) {
@@ -285,7 +277,7 @@ public class NewSimulator extends AbstractSimulator {
             if (isArcher(unit)) {
                 result[ID_ARCHER] += unit.getAttack() * (double) element.getCount() * element.getTech() * itemFactor;
             }
-        }
+        });
         double moral = getMoral() / 100;
         double luck = ((100 + getLuck()) / 100);
         double believeFactor = (isAttackerBelieve()) ? 1.0 : 0.5;
@@ -305,7 +297,7 @@ public class NewSimulator extends AbstractSimulator {
         return result;
     }
 
-    private double[] calculateDefStrengths(Hashtable<UnitHolder, AbstractUnitElement> pTable, double[] pOffStrengths, int pWallAtFight, boolean pUseBasicDefense) {
+    private double[] calculateDefStrengths(HashMap<UnitHolder, AbstractUnitElement> pTable, double[] pOffStrengths, int pWallAtFight, boolean pUseBasicDefense) {
         double[] result = new double[3];
         double totalOff = 0;
         for (double d : pOffStrengths) {
@@ -314,10 +306,7 @@ public class NewSimulator extends AbstractSimulator {
         double infantryMulti = (totalOff == 0) ? 0 : pOffStrengths[ID_INFANTRY] / totalOff;
         double cavalryMulti = (totalOff == 0) ? 0 : pOffStrengths[ID_CAVALRY] / totalOff;
         double archerMulti = (totalOff == 0) ? 0 : pOffStrengths[ID_ARCHER] / totalOff;
-        Enumeration<UnitHolder> units = pTable.keys();
-        while (units.hasMoreElements()) {
-            UnitHolder unit = units.nextElement();
-
+        for(UnitHolder unit: pTable.keySet()) {
             AbstractUnitElement element = pTable.get(unit);
             double itemFactor = 1.0;
             for (KnightItem item : defItems) {
@@ -491,10 +480,9 @@ public class NewSimulator extends AbstractSimulator {
     //Calculate how many farm places are needed for the current def
 
     private double calculateDefFarmUsage() {
-        Enumeration<UnitHolder> units = getDef().keys();
         int result = 0;
-        while (units.hasMoreElements()) {
-            UnitHolder unit = units.nextElement();
+        
+        for(UnitHolder unit: getDef().keySet()) {
             AbstractUnitElement unitElement = getDef().get(unit);
             result += unit.getPop() * unitElement.getCount();
         }

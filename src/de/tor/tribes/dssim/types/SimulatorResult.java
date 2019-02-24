@@ -5,7 +5,7 @@
 package de.tor.tribes.dssim.types;
 
 import de.tor.tribes.dssim.util.UnitManager;
-import java.util.Hashtable;
+import java.util.HashMap;
 
 /**
  *
@@ -15,10 +15,10 @@ public class SimulatorResult {
 
     private boolean win = false;
     private int nukes = 1;
-    private Hashtable<UnitHolder, AbstractUnitElement> offBefore = null;
-    private Hashtable<UnitHolder, AbstractUnitElement> defBefore = null;
-    private Hashtable<UnitHolder, AbstractUnitElement> survivingOff = null;
-    private Hashtable<UnitHolder, AbstractUnitElement> survivingDef = null;
+    private HashMap<UnitHolder, AbstractUnitElement> offBefore = null;
+    private HashMap<UnitHolder, AbstractUnitElement> defBefore = null;
+    private HashMap<UnitHolder, AbstractUnitElement> survivingOff = null;
+    private HashMap<UnitHolder, AbstractUnitElement> survivingDef = null;
     private int wallLevel = 0;
     private int buildingLevel = 0;
     private int wallBefore = 0;
@@ -26,8 +26,8 @@ public class SimulatorResult {
     private boolean cataAtWall = false;
 
     public SimulatorResult() {
-        survivingOff = new Hashtable<UnitHolder, AbstractUnitElement>();
-        survivingDef = new Hashtable<UnitHolder, AbstractUnitElement>();
+        survivingOff = new HashMap<>();
+        survivingDef = new HashMap<>();
         for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
             AbstractUnitElement copy = new AbstractUnitElement(unit, 0, 1);
             survivingOff.put(unit, copy);
@@ -36,9 +36,9 @@ public class SimulatorResult {
         }
     }
 
-    public SimulatorResult(Hashtable<UnitHolder, AbstractUnitElement> pOff, Hashtable<UnitHolder, AbstractUnitElement> pDef) {
-        survivingOff = new Hashtable<UnitHolder, AbstractUnitElement>();
-        survivingDef = new Hashtable<UnitHolder, AbstractUnitElement>();
+    public SimulatorResult(HashMap<UnitHolder, AbstractUnitElement> pOff, HashMap<UnitHolder, AbstractUnitElement> pDef) {
+        survivingOff = new HashMap<>();
+        survivingDef = new HashMap<>();
         for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
             AbstractUnitElement element = pOff.get(unit);
             AbstractUnitElement copy = new AbstractUnitElement(unit, element.getCount(), element.getTech());
@@ -49,19 +49,19 @@ public class SimulatorResult {
         }
     }
 
-    public void setOffBefore(Hashtable<UnitHolder, AbstractUnitElement> pOff) {
+    public void setOffBefore(HashMap<UnitHolder, AbstractUnitElement> pOff) {
         offBefore = pOff;
     }
 
-    public void setDefBefore(Hashtable<UnitHolder, AbstractUnitElement> pDef) {
+    public void setDefBefore(HashMap<UnitHolder, AbstractUnitElement> pDef) {
         defBefore = pDef;
     }
 
-    public Hashtable<UnitHolder, AbstractUnitElement> getOffBefore() {
+    public HashMap<UnitHolder, AbstractUnitElement> getOffBefore() {
         return offBefore;
     }
 
-    public Hashtable<UnitHolder, AbstractUnitElement> getDefBefore() {
+    public HashMap<UnitHolder, AbstractUnitElement> getDefBefore() {
         return defBefore;
     }
 
@@ -90,28 +90,28 @@ public class SimulatorResult {
     /**
      * @return the survivingOff
      */
-    public Hashtable<UnitHolder, AbstractUnitElement> getSurvivingOff() {
+    public HashMap<UnitHolder, AbstractUnitElement> getSurvivingOff() {
         return survivingOff;
     }
 
     /**
      * @param survivingOff the survivingOff to set
      */
-    public void setSurvivingOff(Hashtable<UnitHolder, AbstractUnitElement> survivingOff) {
+    public void setSurvivingOff(HashMap<UnitHolder, AbstractUnitElement> survivingOff) {
         this.survivingOff = survivingOff;
     }
 
     /**
      * @return the survivingDef
      */
-    public Hashtable<UnitHolder, AbstractUnitElement> getSurvivingDef() {
+    public HashMap<UnitHolder, AbstractUnitElement> getSurvivingDef() {
         return survivingDef;
     }
 
     /**
      * @param survivingDef the survivingDef to set
      */
-    public void setSurvivingDef(Hashtable<UnitHolder, AbstractUnitElement> survivingDef) {
+    public void setSurvivingDef(HashMap<UnitHolder, AbstractUnitElement> survivingDef) {
         this.survivingDef = survivingDef;
     }
 

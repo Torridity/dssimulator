@@ -10,8 +10,7 @@ import de.tor.tribes.dssim.types.SimulatorResult;
 import de.tor.tribes.dssim.types.UnitHolder;
 import de.tor.tribes.dssim.util.ConfigManager;
 import de.tor.tribes.dssim.util.UnitManager;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -21,9 +20,10 @@ public class OldSimulator extends AbstractSimulator {
 
     boolean DEBUG = false;
 
+    @Override
     public SimulatorResult calculate(
-            Hashtable<UnitHolder, AbstractUnitElement> pOff,
-            Hashtable<UnitHolder, AbstractUnitElement> pDef,
+            HashMap<UnitHolder, AbstractUnitElement> pOff,
+            HashMap<UnitHolder, AbstractUnitElement> pDef,
             KnightItem pOffItem,
             List<KnightItem> pDefItems,
             boolean pNightBonus,
@@ -192,10 +192,9 @@ public class OldSimulator extends AbstractSimulator {
 
         //substract lost units
         for (UnitHolder unit : UnitManager.getSingleton().getUnits()) {
-            int survivors = 0;
             if (!isSpy(unit)) {
                 //normal calculation for off losses
-                survivors = (int) Math.round(getOff().get(unit).getCount() - lossRatioOff * getOff().get(unit).getCount());
+                int survivors = (int) Math.round(getOff().get(unit).getCount() - lossRatioOff * getOff().get(unit).getCount());
                 result.getSurvivingOff().get(unit).setCount((survivors < 0) ? 0 : survivors);
             } else {
                 double spyRateTillDeath = 2.0;
@@ -220,7 +219,7 @@ public class OldSimulator extends AbstractSimulator {
 
 
             //calculate def losses
-            survivors = (int) Math.round(getDef().get(unit).getCount() - lossRatioDef * getDef().get(unit).getCount());
+            int survivors = (int) Math.round(getDef().get(unit).getCount() - lossRatioDef * getDef().get(unit).getCount());
             result.getSurvivingDef().get(unit).setCount((survivors < 0) ? 0 : survivors);
         }
 
@@ -245,9 +244,7 @@ public class OldSimulator extends AbstractSimulator {
     /**Calculate the overall strength of the current off divided into infantry and cavalry*/
     private double[] calculateOffStrengthts() {
         double[] result = new double[]{0.0, 0.0};
-        Enumeration<UnitHolder> units = getOff().keys();
-        while (units.hasMoreElements()) {
-            UnitHolder unit = units.nextElement();
+        for(UnitHolder unit: getOff().keySet()) {
             AbstractUnitElement unitElement = getOff().get(unit);
             if (isInfantry(unit)) {
                 result[ID_INFANTRY] += unitElement.getCount() * unit.getAttack() * getTechFactor(unitElement.getTech());
@@ -267,9 +264,7 @@ public class OldSimulator extends AbstractSimulator {
     /**Calculate the overall strength of the current def divided into infantry and cavalry*/
     private double[] calculateDefStrengths() {
         double[] result = new double[]{0.0, 0.0};
-        Enumeration<UnitHolder> units = getDef().keys();
-        while (units.hasMoreElements()) {
-            UnitHolder unit = units.nextElement();
+        for(UnitHolder unit: getDef().keySet()) {
             AbstractUnitElement unitElement = getDef().get(unit);
             result[ID_INFANTRY] += unitElement.getCount() * unit.getDefense() * getTechFactor(unitElement.getTech());
             result[ID_CAVALRY] += unitElement.getCount() * unit.getDefenseCavalry() * getTechFactor(unitElement.getTech());
@@ -282,10 +277,8 @@ public class OldSimulator extends AbstractSimulator {
 
     //Calculate how many farm places are needed for the current def
     private double calculateDefFarmUsage() {
-        Enumeration<UnitHolder> units = getDef().keys();
         int result = 0;
-        while (units.hasMoreElements()) {
-            UnitHolder unit = units.nextElement();
+        for(UnitHolder unit: getDef().keySet()) {
             AbstractUnitElement unitElement = getDef().get(unit);
             result += unit.getPop() * unitElement.getCount();
         }

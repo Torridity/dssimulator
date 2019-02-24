@@ -28,7 +28,7 @@ public class ImageManager {
     public final static int ICON_KNIGHT = 10;
     public final static int ICON_SNOB = 11;
     public final static int ICON_MILITIA = 12;
-    private static final List<ImageIcon> UNIT_ICONS = new LinkedList<ImageIcon>();
+    private static final List<ImageIcon> UNIT_ICONS = new LinkedList<>();
 
     /**Load the icons of the units used for the animated unit movement on the MapPanel*/
     public static void loadUnitIcons() throws Exception {
